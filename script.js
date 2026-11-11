@@ -1,429 +1,142 @@
+(function () {
+  const game = new Chess();
+  const boardEl = document.getElementById('chessboard');
+  const statusEl = document.getElementById('gameStatus');
+  const files = 'abcdefgh';
 
-const game = new Chess();
+  const SKINS = {
+    classic: { name: 'Classic', w: { p:'♙', n:'♘', b:'♗', r:'♖', q:'♕', k:'♔' }, b: { p:'♟', n:'♞', b:'♝', r:'♜', q:'♛', k:'♚' } },
+    cat:     { name: 'Cat collection', all: { p:'🐾', n:'🐈', b:'😺', r:'🐱', q:'😻', k:'😼' } },
+    bunny:   { name: 'Bunny collection', all: { p:'🥕', n:'🐇', b:'🐰', r:'🌸', q:'🎀', k:'👑' } }
+  };
 
-const boardElement = document.getElementById("chessboard");
-const statusElement = document.getElementById("gameStatus");
-const historyElement = document.getElementById("moveHistory");
-const moveCountElement = document.getElementById("moveCount");
+  let skin = 'classic';
+  try { skin = localStorage.getItem('chessSkin') || 'classic'; } catch (e) {}
+  if (!SKINS[skin]) skin = 'classic';
 
-const settingsModal = document.getElementById("settingsModal");
-const promotionModal = document.getElementById("promotionModal");
+  let selected = null, legal = [], lastMove = null, pendingPromo = null;
 
-let selectedSquare = null;
-let legalMoves = [];
-let pendingPromotion = null;
-let lastMove = null;
-
-let currentSkin = localStorage.getItem("blushSkin") || "classic";
-let selectedSkin = currentSkin;
-
-const skins = {
-  classic: {
-    w: {
-      k: "♔", q: "♕", r: "♖",
-      b: "♗", n: "♘", p: "♙"
-    },
-    b: {
-      k: "♚", q: "♛", r: "♜",
-      b: "♝", n: "♞", p: "♟"
-    }
-  },
-
-  cat: {
-    w: {
-      k: "😺", q: "😸", r: "🐱",
-      b: "😻", n: "😹", p: "🐾"
-    },
-    b: {
-      k: "😼", q: "😿", r: "🐈‍⬛",
-      b: "🙀", n: "😾", p: "🐾"
-    }
-  },
-
-  bunny: {
-    w: {
-      k: "🐰", q: "🐇", r: "🐰",
-      b: "🐇", n: "🐰", p: "🥕"
-    },
-    b: {
-      k: "🐇", q: "🐰", r: "🐇",
-      b: "🐰", n: "🐇", p: "🥕"
-    }
+  function glyph(piece) {
+    const s = SKINS[skin];
+    return s.all ? s.all[piece.type] : s[piece.color][piece.type];
   }
-};
 
-function getPieceSymbol(piece) {
-  if (!piece) return "";
-
-  return skins[currentSkin][piece.color][piece.type];
-}
-
-function renderBoard() {
-  boardElement.innerHTML = "";
-
-  const board = game.board();
-
-  board.forEach((row, rowIndex) => {
-    row.forEach((piece, colIndex) => {
-
-      const square = document.createElement("button");
-
-      const file = "abcdefgh"[colIndex];
-      const rank = 8 - rowIndex;
-      const squareName = file + rank;
-
-      square.className = "square " +
-        ((rowIndex + colIndex) % 2 === 0 ? "light" : "dark");
-
-      square.dataset.square = squareName;
-      square.setAttribute("aria-label", squareName);
-
-      if (selectedSquare === squareName) {
-        square.classList.add("selected");
-      }
-
-      if (
-        lastMove &&
-        (lastMove.from === squareName ||
-         lastMove.to === squareName)
-      ) {
-        square.classList.add("last-move");
-      }
-
-      const possibleMove = legalMoves.find(
-        move => move.to === squareName
-      );
-
-      if (possibleMove) {
-        square.classList.add("legal");
-
-        if (possibleMove.captured) {
-          square.classList.add("capture");
+  function render() {
+    boardEl.className = 'chessboard skin-' + skin;
+    boardEl.innerHTML = '';
+    const board = game.board();
+    const inCheck = game.in_check();
+    for (let r = 0; r < 8; r++) {
+      for (let c = 0; c < 8; c++) {
+        const sq = files[c] + (8 - r);
+        const piece = board[r][c];
+        const el = document.createElement('div');
+        el.className = 'square ' + ((r + c) % 2 === 0 ? 'light' : 'dark');
+        el.dataset.square = sq;
+        if (sq === selected) el.classList.add('selected');
+        if (lastMove && (sq === lastMove.from || sq === lastMove.to)) el.classList.add('last');
+        const hint = legal.find(m => m.to === sq);
+        if (hint) { el.classList.add('hint'); if (piece || hint.flags.includes('e')) el.classList.add('capture'); }
+        if (inCheck && piece && piece.type === 'k' && piece.color === game.turn()) el.classList.add('check');
+        if (piece) {
+          const p = document.createElement('span');
+          p.className = 'piece ' + (piece.color === 'w' ? 'white' : 'black');
+          p.textContent = glyph(piece);
+          el.appendChild(p);
         }
+        if (c === 0) { const n = document.createElement('span'); n.className = 'coord'; n.style.left = '3px'; n.style.right = 'auto'; n.style.top = '1px'; n.style.bottom = 'auto'; n.textContent = 8 - r; el.appendChild(n); }
+        if (r === 7) { const n = document.createElement('span'); n.className = 'coord'; n.textContent = files[c]; el.appendChild(n); }
+        el.addEventListener('click', () => onSquare(sq));
+        boardEl.appendChild(el);
       }
-
-      if (piece) {
-        const pieceElement = document.createElement("span");
-
-        pieceElement.className = "piece";
-        pieceElement.textContent = getPieceSymbol(piece);
-
-        square.appendChild(pieceElement);
-      }
-
-      square.addEventListener("click", () => {
-        handleSquareClick(squareName);
-      });
-
-      boardElement.appendChild(square);
-    });
-  });
-
-  updateGameInfo();
-}
-
-function handleSquareClick(squareName) {
-  if (pendingPromotion || game.game_over()) return;
-
-  const piece = game.get(squareName);
-
-  // Select your own piece
-  if (piece && piece.color === game.turn()) {
-    selectedSquare = squareName;
-
-    legalMoves = game.moves({
-      square: squareName,
-      verbose: true
-    });
-
-    renderBoard();
-    return;
+    }
+    updateInfo();
   }
 
-  // Try moving to a selected square
-  if (selectedSquare) {
-
-    const matchingMoves = legalMoves.filter(
-      move => move.to === squareName
-    );
-
-    if (matchingMoves.length === 0) {
-      selectedSquare = null;
-      legalMoves = [];
-      renderBoard();
+  function onSquare(sq) {
+    if (game.game_over()) return;
+    const move = legal.find(m => m.to === sq);
+    if (selected && move) {
+      if (move.flags.includes('p')) { askPromotion(move.from, move.to); return; }
+      makeMove(move.from, move.to);
       return;
     }
-
-    // Handle pawn promotion
-    const promotionMoves = matchingMoves.filter(
-      move => move.promotion
-    );
-
-    if (promotionMoves.length > 0) {
-      pendingPromotion = {
-        from: selectedSquare,
-        to: squareName
-      };
-
-      showPromotionChoices();
-      return;
-    }
-
-    makeMove({
-      from: selectedSquare,
-      to: squareName
-    });
+    const piece = game.get(sq);
+    if (piece && piece.color === game.turn()) {
+      selected = sq;
+      legal = game.moves({ square: sq, verbose: true });
+    } else { selected = null; legal = []; }
+    render();
   }
-}
 
-function makeMove(move) {
-  try {
-    const result = game.move(move);
-
-    if (!result) return;
-
-    lastMove = {
-      from: result.from,
-      to: result.to
-    };
-
-    selectedSquare = null;
-    legalMoves = [];
-    pendingPromotion = null;
-
-    promotionModal.classList.remove("show");
-
-    renderBoard();
-
-  } catch (error) {
-    console.error("Move error:", error);
+  function makeMove(from, to, promotion) {
+    const m = game.move({ from, to, promotion: promotion || 'q' });
+    if (m) lastMove = { from: m.from, to: m.to };
+    selected = null; legal = [];
+    render();
   }
-}
 
-// PAWN PROMOTION
-
-function showPromotionChoices() {
-  const choices = document.getElementById("promotionChoices");
-
-  choices.innerHTML = "";
-
-  ["q", "r", "b", "n"].forEach(type => {
-
-    const button = document.createElement("button");
-
-    button.className = "promotion-choice";
-
+  function askPromotion(from, to) {
     const color = game.turn();
-
-    button.textContent = getPieceSymbol({
-      type: type,
-      color: color
+    const box = document.getElementById('promotionChoices');
+    box.innerHTML = '';
+    ['q', 'r', 'b', 'n'].forEach(t => {
+      const b = document.createElement('button');
+      b.textContent = glyph({ type: t, color });
+      b.setAttribute('aria-label', t);
+      b.onclick = () => { closeModal('promotionModal'); makeMove(from, to, t); };
+      box.appendChild(b);
     });
-
-    button.title = {
-      q: "Queen",
-      r: "Rook",
-      b: "Bishop",
-      n: "Knight"
-    }[type];
-
-    button.addEventListener("click", () => {
-      makeMove({
-        from: pendingPromotion.from,
-        to: pendingPromotion.to,
-        promotion: type
-      });
-    });
-
-    choices.appendChild(button);
-  });
-
-  promotionModal.classList.add("show");
-}
-
-// GAME INFORMATION
-
-function updateGameInfo() {
-
-  const history = game.history();
-  const turn = game.turn();
-
-  moveCountElement.textContent = history.length;
-
-  document.getElementById("currentSkin").textContent = {
-    classic: "Classic",
-    cat: "Cat collection 🐱",
-    bunny: "Bunny collection 🐰"
-  }[currentSkin];
-
-  document.getElementById("whiteTurn")
-    .classList.toggle("active", turn === "w");
-
-  document.getElementById("blackTurn")
-    .classList.toggle("active", turn === "b");
-
-  if (game.in_checkmate()) {
-    statusElement.textContent =
-      "Checkmate! " +
-      (turn === "w" ? "Black" : "White") +
-      " wins! ♡";
-
-  } else if (game.in_stalemate()) {
-    statusElement.textContent = "Draw! Stalemate ♡";
-
-  } else if (game.in_draw()) {
-    statusElement.textContent = "It's a draw! ♡";
-
-  } else if (game.in_check()) {
-    statusElement.textContent =
-      (turn === "w" ? "White" : "Black") +
-      " is in check!";
-
-  } else {
-    statusElement.textContent =
-      (turn === "w" ? "White" : "Black") +
-      "'s turn ♡";
+    openModal('promotionModal');
   }
 
-  renderHistory(history);
-}
-
-function renderHistory(history) {
-  historyElement.innerHTML = "";
-
-  if (history.length === 0) {
-    historyElement.innerHTML =
-      '<p class="empty-history">Your story starts here...</p>';
-    return;
-  }
-
-  for (let i = 0; i < history.length; i += 2) {
-
-    const row = document.createElement("div");
-    row.className = "move-item";
-
-    const number = document.createElement("span");
-    number.className = "move-number";
-    number.textContent = (Math.floor(i / 2) + 1) + ".";
-
-    const whiteMove = document.createElement("span");
-    whiteMove.textContent = history[i];
-
-    row.appendChild(number);
-    row.appendChild(whiteMove);
-
-    if (history[i + 1]) {
-      const blackMove = document.createElement("span");
-      blackMove.textContent = " " + history[i + 1];
-      row.appendChild(blackMove);
+  function updateInfo() {
+    const turn = game.turn();
+    document.getElementById('whiteTurn').classList.toggle('active', turn === 'w' && !game.game_over());
+    document.getElementById('blackTurn').classList.toggle('active', turn === 'b' && !game.game_over());
+    let msg = (turn === 'w' ? "White's" : "Black's") + ' turn ♡';
+    if (game.in_checkmate()) msg = 'Checkmate! ' + (turn === 'w' ? 'Black' : 'White') + ' wins ♡';
+    else if (game.in_stalemate()) msg = 'Stalemate — it\'s a draw ♡';
+    else if (game.in_draw()) msg = 'Draw ♡';
+    else if (game.in_check()) msg = msg.replace(' ♡', '') + ' — check!';
+    statusEl.textContent = msg;
+    document.getElementById('currentSkin').textContent = SKINS[skin].name;
+    const hist = game.history();
+    document.getElementById('moveCount').textContent = hist.length;
+    const h = document.getElementById('moveHistory');
+    h.innerHTML = '';
+    if (!hist.length) { h.innerHTML = '<p class="empty-history">Your story starts here...</p>'; return; }
+    for (let i = 0; i < hist.length; i += 2) {
+      h.insertAdjacentHTML('beforeend', `<span class="num">${i / 2 + 1}.</span><span>${hist[i]}</span><span>${hist[i + 1] || ''}</span>`);
     }
-
-    historyElement.appendChild(row);
+    h.scrollTop = h.scrollHeight;
   }
 
-  historyElement.scrollTop = historyElement.scrollHeight;
-}
+  function openModal(id) { document.getElementById(id).classList.add('open'); }
+  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
-// UNDO
+  document.getElementById('undoBtn').onclick = () => {
+    game.undo(); lastMove = null; selected = null; legal = [];
+    const h = game.history({ verbose: true }); if (h.length) lastMove = h[h.length - 1];
+    render();
+  };
+  document.getElementById('restartBtn').onclick = () => {
+    game.reset(); lastMove = null; selected = null; legal = []; render();
+  };
 
-document.getElementById("undoBtn").addEventListener("click", () => {
+  document.getElementById('settingsBtn').onclick = () => openModal('settingsModal');
+  document.getElementById('closeSettings').onclick = () => closeModal('settingsModal');
+  document.getElementById('saveSettings').onclick = () => closeModal('settingsModal');
+  document.getElementById('settingsModal').addEventListener('click', e => { if (e.target.id === 'settingsModal') closeModal('settingsModal'); });
 
-  if (game.history().length === 0) return;
+  const options = document.querySelectorAll('.skin-option');
+  function markActive() { options.forEach(o => o.classList.toggle('active', o.dataset.skin === skin)); }
+  options.forEach(o => o.addEventListener('click', () => {
+    skin = o.dataset.skin;
+    try { localStorage.setItem('chessSkin', skin); } catch (e) {}
+    markActive(); render();
+  }));
 
-  game.undo();
-
-  selectedSquare = null;
-  legalMoves = [];
-  pendingPromotion = null;
-
-  const history = game.history({ verbose: true });
-
-  lastMove = history.length
-    ? {
-        from: history[history.length - 1].from,
-        to: history[history.length - 1].to
-      }
-    : null;
-
-  promotionModal.classList.remove("show");
-
-  renderBoard();
-});
-
-// RESTART
-
-document.getElementById("restartBtn").addEventListener("click", () => {
-
-  const confirmRestart = confirm(
-    "Start a new chess game? ♡"
-  );
-
-  if (!confirmRestart) return;
-
-  game.reset();
-
-  selectedSquare = null;
-  legalMoves = [];
-  pendingPromotion = null;
-  lastMove = null;
-
-  promotionModal.classList.remove("show");
-
-  renderBoard();
-});
-
-// SETTINGS MODAL
-
-document.getElementById("settingsBtn").addEventListener("click", () => {
-  selectedSkin = currentSkin;
-  updateSkinSelection();
-  settingsModal.classList.add("show");
-});
-
-document.getElementById("closeSettings").addEventListener("click", () => {
-  settingsModal.classList.remove("show");
-});
-
-document.getElementById("saveSettings").addEventListener("click", () => {
-
-  currentSkin = selectedSkin;
-
-  localStorage.setItem("blushSkin", currentSkin);
-
-  settingsModal.classList.remove("show");
-
-  renderBoard();
-});
-
-document.querySelectorAll(".skin-option").forEach(button => {
-
-  button.addEventListener("click", () => {
-
-    selectedSkin = button.dataset.skin;
-
-    updateSkinSelection();
-  });
-});
-
-function updateSkinSelection() {
-
-  document.querySelectorAll(".skin-option").forEach(button => {
-
-    button.classList.toggle(
-      "active",
-      button.dataset.skin === selectedSkin
-    );
-  });
-}
-
-// CLOSE MODAL WHEN CLICKING OUTSIDE
-
-settingsModal.addEventListener("click", event => {
-  if (event.target === settingsModal) {
-    settingsModal.classList.remove("show");
-  }
-});
-
-// INITIALIZE
-
-renderBoard();
+  markActive();
+  render();
+})();
