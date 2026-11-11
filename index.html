@@ -4,182 +4,173 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PurrBounce 3D</title>
+<title>PurrBounce ♡</title>
 <style>
+  @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&display=swap');
+
   * { box-sizing: border-box; }
   body {
     margin: 0;
     overflow: hidden;
-    font-family: "Trebuchet MS", sans-serif;
-    background: #c9e8ff;
-    color: #805b70;
+    font-family: 'Baloo 2', sans-serif;
+    background: #f9dce9;
+    color: #75445f;
+    user-select: none;
   }
   canvas { display: block; }
   #hud {
     position: fixed;
-    top: 16px;
-    left: 16px;
-    right: 16px;
+    inset: 0;
+    pointer-events: none;
+    padding: 16px;
+  }
+  .topbar {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    pointer-events: none;
-    z-index: 5;
+    gap: 10px;
   }
   .panel {
     background: rgba(255,255,255,.82);
-    border: 2px solid rgba(255,255,255,.9);
+    border: 2px solid rgba(255,255,255,.95);
     border-radius: 18px;
-    padding: 10px 15px;
-    box-shadow: 0 5px 18px #8ba7b744;
+    padding: 8px 15px;
+    box-shadow: 0 5px 15px #b76d9220;
     backdrop-filter: blur(8px);
   }
-  #brand { font-size: 20px; font-weight: 900; color: #e77ca9; }
-  #stats { font-size: 13px; margin-top: 4px; }
+  .logo { font-size: 24px; font-weight: 800; line-height: 1; }
+  .small { font-size: 13px; opacity: .8; }
+  #stats { display:flex; gap:8px; font-weight:700; }
+  #progressWrap {
+    width: min(250px, 40vw);
+    height: 12px;
+    background: #f3c7da;
+    border-radius: 20px;
+    overflow: hidden;
+    margin-top: 6px;
+  }
+  #progress {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg,#ff8fba,#f5b5d2);
+    border-radius: 20px;
+  }
   #buttons {
     display: flex;
     gap: 7px;
     pointer-events: auto;
   }
-  button {
+  .hudbtn {
     border: 0;
     border-radius: 14px;
-    padding: 10px 13px;
     background: #fff;
-    color: #b76c91;
-    font-weight: bold;
+    color: #9c5b7b;
+    font: 700 14px 'Baloo 2';
+    padding: 8px 12px;
     cursor: pointer;
-    box-shadow: 0 4px 10px #8b6d8030;
-  }
-  button:hover { background: #ffe7f1; }
-  #progressWrap {
-    position: fixed;
-    top: 88px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: min(300px, 48vw);
-    height: 10px;
-    border-radius: 20px;
-    background: #ffffff9c;
-    overflow: hidden;
-    z-index: 5;
-  }
-  #progress {
-    width: 0%;
-    height: 100%;
-    background: linear-gradient(90deg,#f5a5c8,#ffe08a);
-    border-radius: 20px;
+    box-shadow: 0 4px 10px #9b527522;
   }
   #message {
     position: fixed;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #fff5f3a8;
-    z-index: 10;
-    padding: 20px;
-  }
-  #messageCard {
-    width: min(390px, 92vw);
-    padding: 28px;
+    left: 50%;
+    top: 45%;
+    transform: translate(-50%,-50%);
     text-align: center;
-    background: #fffafc;
+    width: min(90%, 430px);
+    padding: 28px;
+    background: rgba(255,255,255,.94);
     border: 3px solid white;
     border-radius: 28px;
-    box-shadow: 0 15px 50px #8e6a8050;
+    box-shadow: 0 15px 50px #7d476044;
+    z-index: 5;
   }
-  #messageCard h1 {
-    color: #e77ca9;
-    font-size: 34px;
-    margin: 0 0 8px;
-  }
-  #messageCard p { line-height: 1.5; color: #99798a; }
-  #mainButton {
-    margin-top: 12px;
-    padding: 13px 28px;
+  #message h1 { margin: 0 0 4px; font-size: 38px; color: #e77da9; }
+  #message p { margin: 5px 0 18px; line-height: 1.4; }
+  .mainbtn {
+    border: 0;
+    border-radius: 18px;
+    background: linear-gradient(135deg,#ff9fc5,#ec79a9);
     color: white;
-    background: linear-gradient(135deg,#f39fc2,#e77ca9);
-    font-size: 16px;
+    font: 800 19px 'Baloo 2';
+    padding: 10px 30px;
+    cursor: pointer;
+    box-shadow: 0 5px 0 #d76696;
   }
-  #controls {
+  #touchControls {
     position: fixed;
-    bottom: 22px;
+    bottom: 20px;
     left: 0;
     right: 0;
     display: flex;
     justify-content: space-between;
     padding: 0 22px;
     pointer-events: none;
-    z-index: 6;
   }
-  .controlGroup { display: flex; gap: 12px; }
-  .control {
-    width: 58px;
-    height: 58px;
-    border-radius: 20px;
-    font-size: 23px;
-    background: #ffffffbd;
-    border: 2px solid white;
+  .touchGroup { display:flex; gap:12px; }
+  .touch {
     pointer-events: auto;
+    width: 60px;
+    height: 60px;
+    border: 2px solid #fff;
+    border-radius: 20px;
+    background: #ffffffbb;
+    color: #b45f86;
+    font: 800 25px 'Baloo 2';
+    box-shadow: 0 5px 15px #80405b22;
     touch-action: none;
   }
-  #hint {
-    position: fixed;
-    bottom: 25px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #ffffffa8;
-    border-radius: 20px;
-    padding: 8px 14px;
-    font-size: 12px;
-    z-index: 4;
-    pointer-events: none;
-  }
-  @media (max-width: 600px) {
-    #brand { font-size: 17px; }
-    .panel { padding: 8px 11px; }
-    #stats { font-size: 11px; }
-    #progressWrap { top: 78px; }
-    #hint { display: none; }
-    .control { width: 54px; height: 54px; }
+  .hidden { display:none !important; }
+  @media (max-width:600px) {
+    .logo { font-size:20px; }
+    .panel { padding:7px 10px; }
+    .hudbtn { padding:6px 9px; font-size:12px; }
+    #touchControls { bottom:15px; }
+    .touch { width:55px; height:55px; }
   }
 </style>
 </head>
 <body>
 
 <div id="hud">
-  <div class="panel">
-    <div id="brand">♡ PurrBounce</div>
-    <div id="stats">Level 1 · ♡ 0</div>
-  </div>
-  <div id="buttons">
-    <button id="musicBtn">♫ Music ON</button>
-    <button id="soundBtn">♪ Sound ON</button>
+  <div class="topbar">
+    <div class="panel">
+      <div class="logo">🐾 PurrBounce</div>
+      <div class="small">A little adventure ♡</div>
+    </div>
+
+    <div id="stats">
+      <div class="panel">
+        <div>💗 <span id="heartCount">0</span></div>
+        <div class="small">Hearts</div>
+      </div>
+      <div class="panel">
+        <div>🌷 Level <span id="levelNum">1</span></div>
+        <div id="progressWrap"><div id="progress"></div></div>
+      </div>
+    </div>
+
+    <div id="buttons">
+      <button class="hudbtn" id="musicBtn">♫ Music ON</button>
+      <button class="hudbtn" id="soundBtn">🔊 Sound</button>
+      <button class="hudbtn" id="pauseBtn">Ⅱ</button>
+    </div>
   </div>
 </div>
-
-<div id="progressWrap"><div id="progress"></div></div>
-
-<div id="controls">
-  <div class="controlGroup">
-    <button class="control" id="leftBtn">←</button>
-    <button class="control" id="rightBtn">→</button>
-  </div>
-  <div class="controlGroup">
-    <button class="control" id="jumpBtn">↑</button>
-  </div>
-</div>
-
-<div id="hint">Move: A / D or ← / → &nbsp; · &nbsp; Jump: SPACE / ↑</div>
 
 <div id="message">
-  <div id="messageCard">
-    <h1>♡ PurrBounce ♡</h1>
-    <p>A little pink kitty, a big green world, and lots of hearts to collect!</p>
-    <p>Jump over obstacles and explore the meadow.</p>
-    <button id="mainButton">Let's Play!</button>
+  <h1>PurrBounce ♡</h1>
+  <p>Help your little kitty explore the garden!<br>
+  Collect hearts, jump over obstacles, and reach the flower gate.</p>
+  <p class="small">← → or A / D to move · Space / ↑ to jump</p>
+  <button class="mainbtn" id="startBtn">Let's Play! ♡</button>
+</div>
+
+<div id="touchControls">
+  <div class="touchGroup">
+    <button class="touch" id="leftBtn">◀</button>
+    <button class="touch" id="rightBtn">▶</button>
   </div>
+  <button class="touch" id="jumpBtn">↑</button>
 </div>
 
 <script type="importmap">
@@ -191,18 +182,15 @@
 </script>
 
 <script type="module">
-import * as THREE from "three";
-
-/* ---------------- SCENE ---------------- */
+import * as THREE from 'three';
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color("#c9e8ff");
-scene.fog = new THREE.Fog("#c9e8ff", 30, 115);
+scene.background = new THREE.Color('#ccecf4');
+scene.fog = new THREE.Fog('#ccecf4', 28, 90);
 
-const camera = new THREE.PerspectiveCamera(
-  55, window.innerWidth / window.innerHeight, 0.1, 250
-);
-camera.position.set(0, 5.5, 10);
+const camera = new THREE.OrthographicCamera(-11, 11, 6.2, -6.2, 0.1, 150);
+camera.position.set(0, 5, 24);
+camera.lookAt(0, 3, 0);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -214,672 +202,597 @@ renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.15;
 document.body.appendChild(renderer.domElement);
 
-/* ---------------- LIGHTING ---------------- */
+scene.add(new THREE.HemisphereLight(0xffffff, 0x9bba91, 2));
 
-scene.add(new THREE.HemisphereLight(0xffffff, 0x91b77a, 2.0));
+const sunlight = new THREE.DirectionalLight(0xffffff, 2.2);
+sunlight.position.set(-5, 12, 10);
+sunlight.castShadow = true;
+sunlight.shadow.mapSize.set(2048, 2048);
+sunlight.shadow.camera.left = -35;
+sunlight.shadow.camera.right = 35;
+sunlight.shadow.camera.top = 20;
+sunlight.shadow.camera.bottom = -20;
+scene.add(sunlight);
 
-const sun = new THREE.DirectionalLight(0xfff1d5, 3.1);
-sun.position.set(-7, 13, 8);
-sun.castShadow = true;
-sun.shadow.mapSize.set(2048, 2048);
-sun.shadow.camera.left = -25;
-sun.shadow.camera.right = 25;
-sun.shadow.camera.top = 30;
-sun.shadow.camera.bottom = -30;
-scene.add(sun);
+const mat = (color, roughness=0.85) =>
+  new THREE.MeshStandardMaterial({ color, roughness });
 
-/* ---------------- MATERIALS ---------------- */
+const grassMat = mat('#83c98a');
+const grassTopMat = mat('#a5df9c');
+const dirtMat = mat('#b98269');
+const pinkMat = mat('#f58eb9');
+const palePinkMat = mat('#ffd2e2');
+const whiteMat = mat('#fff8f4');
+const darkMat = mat('#5a3b50');
+const leafMat = mat('#65b982');
+const flowerMat = mat('#ff9fc6');
+const yellowMat = mat('#ffdf83');
 
-const mat = (color, roughness = 0.8, metalness = 0) =>
-  new THREE.MeshStandardMaterial({ color, roughness, metalness });
+const world = new THREE.Group();
+scene.add(world);
 
-const grassMat = mat("#8fcf72");
-const grassSideMat = mat("#70b85f");
-const pinkMat = mat("#f49ac2", 0.45);
-const lightPinkMat = mat("#ffc2d9", 0.5);
-const innerEarMat = mat("#d96e9d");
-const whiteMat = mat("#fffaf4", 0.35);
-const darkMat = mat("#493c4a", 0.3);
-const greenMat = mat("#70ad59");
-const yellowMat = mat("#ffe28b");
-const woodMat = mat("#a87950");
-const rockMat = mat("#aaa9a0");
-
-/* ---------------- GROUND ---------------- */
-
-const ground = new THREE.Mesh(
-  new THREE.BoxGeometry(18, 1, 300),
-  grassMat
-);
-ground.position.set(0, -0.55, -120);
-ground.receiveShadow = true;
-scene.add(ground);
-
-const groundSide = new THREE.Mesh(
-  new THREE.BoxGeometry(18.2, 0.5, 300),
-  grassSideMat
-);
-groundSide.position.set(0, -1.25, -120);
-scene.add(groundSide);
-
-/* ---------------- DECORATIONS ---------------- */
-
-const scenery = new THREE.Group();
-scene.add(scenery);
-
-function addFlower(x, z, size = 1) {
-  const group = new THREE.Group();
-  group.position.set(x, 0, z);
-  const stem = new THREE.Mesh(
-    new THREE.CylinderGeometry(.025, .035, .42 * size, 6),
-    greenMat
-  );
-  stem.position.y = .21 * size;
-  group.add(stem);
-
-  const colors = ["#fff4f7", "#ffe58f", "#f7b5d0", "#d9c4ff"];
-  const petalMat = mat(colors[Math.floor(Math.random() * colors.length)]);
-  for (let i = 0; i < 5; i++) {
-    const angle = i * Math.PI * 2 / 5;
-    const petal = new THREE.Mesh(
-      new THREE.SphereGeometry(.12 * size, 12, 10),
-      petalMat
-    );
-    petal.position.set(
-      Math.cos(angle) * .12 * size,
-      .43 * size,
-      Math.sin(angle) * .12 * size
-    );
-    petal.scale.set(1, .55, 1);
-    group.add(petal);
-  }
-  const center = new THREE.Mesh(
-    new THREE.SphereGeometry(.08 * size, 12, 10),
-    yellowMat
-  );
-  center.position.y = .44 * size;
-  group.add(center);
-  scenery.add(group);
-}
-
-function addTree(x, z, scale = 1) {
-  const group = new THREE.Group();
-  group.position.set(x, 0, z);
-  const trunk = new THREE.Mesh(
-    new THREE.CylinderGeometry(.18, .25, 1.5, 8),
-    woodMat
-  );
-  trunk.position.y = .75;
-  trunk.castShadow = true;
-  group.add(trunk);
-
-  const crown = new THREE.Mesh(
-    new THREE.SphereGeometry(1, 16, 14),
-    mat("#8ebd72")
-  );
-  crown.position.y = 2;
-  crown.scale.set(1.2, 1.1, 1);
-  crown.castShadow = true;
-  group.add(crown);
-  group.scale.setScalar(scale);
-  scenery.add(group);
-}
-
-for (let z = 5; z > -260; z -= 5) {
-  addFlower(-5.8 + Math.random() * 2, z, .6 + Math.random() * .7);
-  addFlower(4.5 + Math.random() * 1.5, z - 2, .6 + Math.random() * .7);
-  if (Math.random() > .65) addTree(-8, z, .7 + Math.random() * .5);
-  if (Math.random() > .65) addTree(8, z - 3, .7 + Math.random() * .5);
-}
-
-/* ---------------- CLOUDS ---------------- */
-
-const clouds = new THREE.Group();
-scene.add(clouds);
-
-for (let i = 0; i < 12; i++) {
-  const cloud = new THREE.Group();
-  const cloudMat = new THREE.MeshStandardMaterial({
-    color: "#ffffff", roughness: 1
-  });
-  for (let j = 0; j < 5; j++) {
-    const puff = new THREE.Mesh(
-      new THREE.SphereGeometry(1, 16, 12),
-      cloudMat
-    );
-    puff.position.set(j * .8, Math.random() * .35, Math.random() * .4);
-    puff.scale.set(1.1, .65, .75);
-    cloud.add(puff);
-  }
-  cloud.position.set(
-    (Math.random() - .5) * 35,
-    9 + Math.random() * 9,
-    -Math.random() * 180
-  );
-  clouds.add(cloud);
-}
-
-/* ---------------- PINK CAT ---------------- */
-
-const cat = new THREE.Group();
-scene.add(cat);
-
-const body = new THREE.Mesh(
-  new THREE.SphereGeometry(.78, 40, 32),
-  new THREE.MeshPhysicalMaterial({
-    color: "#f49ac2",
-    roughness: .48,
-    clearcoat: .25,
-    clearcoatRoughness: .5
-  })
-);
-body.scale.set(1, .94, .92);
-body.position.y = .85;
-body.castShadow = true;
-cat.add(body);
-
-function sphere(parent, color, position, scale, detail = 24) {
+function box(parent, x,y,z, sx,sy,sz, material, cast=true) {
   const mesh = new THREE.Mesh(
-    new THREE.SphereGeometry(1, detail, detail),
-    color
+    new THREE.BoxGeometry(sx,sy,sz), material
   );
-  mesh.position.set(...position);
-  mesh.scale.set(...scale);
-  mesh.castShadow = true;
+  mesh.position.set(x,y,z);
+  mesh.castShadow = cast;
+  mesh.receiveShadow = true;
   parent.add(mesh);
   return mesh;
 }
 
-// Ears
-for (const side of [-1, 1]) {
-  const ear = new THREE.Mesh(
-    new THREE.ConeGeometry(.28, .58, 32),
-    pinkMat
+function sphere(parent, x,y,z, radius, material, sx=1,sy=1,sz=1) {
+  const mesh = new THREE.Mesh(
+    new THREE.SphereGeometry(radius, 24, 18), material
   );
-  ear.position.set(side * .47, 1.48, -.04);
-  ear.rotation.z = side * -.24;
-  ear.castShadow = true;
-  cat.add(ear);
+  mesh.position.set(x,y,z);
+  mesh.scale.set(sx,sy,sz);
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  parent.add(mesh);
+  return mesh;
+}
 
-  const inner = new THREE.Mesh(
-    new THREE.ConeGeometry(.15, .36, 24),
-    innerEarMat
+// Soft background hills
+for (let i=0; i<12; i++) {
+  const hill = sphere(
+    scene,
+    i*10-25, -1.5 + Math.sin(i*2)*.4, -12,
+    5.5,
+    mat(i%2 ? '#a9dcae' : '#b8e5bd'),
+    1.6,.7,.18
   );
-  inner.position.set(side * .47, 1.49, .19);
-  inner.rotation.z = side * -.24;
-  cat.add(inner);
+  hill.castShadow = false;
 }
 
-// Face features
-for (const side of [-1, 1]) {
-  sphere(cat, whiteMat, [side * .27, .98, .69], [.17, .21, .09]);
-  sphere(cat, darkMat, [side * .27, .98, .77], [.075, .12, .045]);
-  sphere(cat, whiteMat, [side * .245, 1.035, .81], [.027, .035, .02]);
-  sphere(cat, lightPinkMat, [side * .49, .77, .65], [.16, .09, .035]);
+// Clouds
+for (let i=0; i<9; i++) {
+  const cloud = new THREE.Group();
+  sphere(cloud,0,0,0,0.8,whiteMat,1.5,.65,.5);
+  sphere(cloud,-.8,-.1,0,.55,whiteMat,1,.8,.6);
+  sphere(cloud,.7,-.05,0,.6,whiteMat,1,.8,.6);
+  cloud.position.set(i*13-8, 7+(i%3)*1.2, -8);
+  cloud.scale.setScalar(.8 + (i%2)*.25);
+  scene.add(cloud);
 }
 
-// Nose
-sphere(cat, innerEarMat, [0, .81, .79], [.07, .05, .04]);
-
-// Tiny mouth
-const mouthCurve = new THREE.QuadraticBezierCurve3(
-  new THREE.Vector3(0, .78, .81),
-  new THREE.Vector3(0, .69, .83),
-  new THREE.Vector3(.1, .72, .81)
-);
-const mouth = new THREE.Mesh(
-  new THREE.TubeGeometry(mouthCurve, 12, .012, 6, false),
-  darkMat
-);
-cat.add(mouth);
-
-// Whiskers
-for (const side of [-1, 1]) {
-  for (let i = 0; i < 2; i++) {
-    const curve = new THREE.QuadraticBezierCurve3(
-      new THREE.Vector3(side * .42, .78 - i * .08, .69),
-      new THREE.Vector3(side * .66, .79 - i * .1, .72),
-      new THREE.Vector3(side * .83, .82 - i * .12, .67)
-    );
-    cat.add(new THREE.Mesh(
-      new THREE.TubeGeometry(curve, 8, .009, 5, false),
-      whiteMat
-    ));
-  }
-}
-
-// Little fluffy chest
-sphere(cat, lightPinkMat, [0, .48, .56], [.42, .26, .22]);
-
-// Tail
-const tailCurve = new THREE.CatmullRomCurve3([
-  new THREE.Vector3(0, .7, -.65),
-  new THREE.Vector3(.2, .9, -1.05),
-  new THREE.Vector3(.48, 1.25, -1.1),
-  new THREE.Vector3(.58, 1.5, -.9)
-]);
-const tail = new THREE.Mesh(
-  new THREE.TubeGeometry(tailCurve, 32, .13, 12, false),
-  pinkMat
-);
-tail.castShadow = true;
-cat.add(tail);
-
-// Tiny paws
-for (const x of [-.42, .42]) {
-  sphere(cat, lightPinkMat, [x, .2, .35], [.22, .15, .28]);
-}
-
-const catShadow = new THREE.Mesh(
-  new THREE.CircleGeometry(.9, 32),
-  new THREE.MeshBasicMaterial({
-    color: "#527e4c", transparent: true, opacity: .2
-  })
-);
-catShadow.rotation.x = -Math.PI / 2;
-catShadow.position.y = .015;
-cat.add(catShadow);
-
-/* ---------------- OBSTACLES & HEARTS ---------------- */
-
-const objects = new THREE.Group();
-scene.add(objects);
-
-let hearts = 0;
-let level = 1;
-let running = false;
-let finished = false;
-let distance = 0;
-let levelLength = 85;
-let velocityY = 0;
-let catX = 0;
-let jumpHeld = false;
-let keys = {};
-let musicOn = true;
-let soundOn = true;
-
-const stats = document.getElementById("stats");
-const progress = document.getElementById("progress");
-const message = document.getElementById("message");
-const mainButton = document.getElementById("mainButton");
-
-function addObstacle(x, z, type) {
-  const group = new THREE.Group();
-  group.position.set(x, 0, z);
-
-  if (type === "mushroom") {
-    const stem = new THREE.Mesh(
-      new THREE.CylinderGeometry(.18, .22, .55, 16),
-      whiteMat
-    );
-    stem.position.y = .28;
-    group.add(stem);
-
-    const cap = new THREE.Mesh(
-      new THREE.SphereGeometry(.43, 24, 16),
-      mat("#e889a9")
-    );
-    cap.position.y = .62;
-    cap.scale.y = .55;
-    group.add(cap);
-  } else if (type === "rock") {
-    const rock = new THREE.Mesh(
-      new THREE.DodecahedronGeometry(.48, 1),
-      rockMat
-    );
-    rock.position.y = .35;
-    rock.scale.set(1.2, .8, 1);
-    group.add(rock);
-  } else {
-    const log = new THREE.Mesh(
-      new THREE.CylinderGeometry(.3, .3, 1.4, 16),
-      woodMat
-    );
-    log.rotation.z = Math.PI / 2;
-    log.position.y = .3;
-    group.add(log);
-  }
-
-  group.traverse(o => {
-    if (o.isMesh) {
-      o.castShadow = true;
-      o.receiveShadow = true;
-    }
-  });
-  group.userData.type = "obstacle";
-  objects.add(group);
-}
-
-function addHeart(x, z) {
-  const group = new THREE.Group();
-  group.position.set(x, 1.35, z);
-
-  const heartMat = new THREE.MeshStandardMaterial({
-    color: "#ff77ae",
-    roughness: .25,
-    metalness: .05,
-    emissive: "#5a102e",
-    emissiveIntensity: .12
-  });
-
-  const left = new THREE.Mesh(
-    new THREE.SphereGeometry(.2, 18, 14), heartMat
-  );
-  left.position.x = -.13;
-  const right = left.clone();
-  right.position.x = .13;
-  group.add(left, right);
-
-  const point = new THREE.Mesh(
-    new THREE.ConeGeometry(.24, .38, 4),
-    heartMat
-  );
-  point.rotation.y = Math.PI / 4;
-  point.position.y = -.2;
-  group.add(point);
-
-  group.userData.type = "heart";
-  group.userData.baseY = 1.35;
-  objects.add(group);
-}
-
-function buildLevel() {
-  objects.clear();
-  distance = 0;
-  catX = 0;
-  velocityY = 0;
-  cat.position.set(0, 0, 2);
-  levelLength = 85 + Math.min(level * 4, 40);
-
-  for (let z = -9; z > -levelLength; z -= 7 + Math.random() * 4) {
-    const lane = [-2.5, 0, 2.5][Math.floor(Math.random() * 3)];
-    const type = ["mushroom", "rock", "log"][
-      Math.floor(Math.random() * 3)
-    ];
-    addObstacle(lane, z, type);
-
-    if (Math.random() > .35) {
-      const heartLane = [-2.5, 0, 2.5][
-        Math.floor(Math.random() * 3)
-      ];
-      addHeart(heartLane, z - 2.5);
-    }
-  }
-
-  addHeart(0, -levelLength + 3);
-}
-
-/* ---------------- AUDIO ---------------- */
-
-let audioCtx = null;
-let musicTimer = null;
-let musicStep = 0;
-
-const melody = [
-  523.25, 659.25, 783.99, 659.25,
-  587.33, 698.46, 880, 698.46,
-  523.25, 659.25, 783.99, 1046.5,
-  880, 783.99, 659.25, 587.33
+// Level layout: platform x, top height, width
+const platforms = [
+  [-2,0,14],
+  [15,0,12],
+  [29,1.0,9],
+  [42,0,12],
+  [57,1.2,10],
+  [71,0,17],
+  [89,0,12]
 ];
 
-function initAudio() {
-  if (!audioCtx) {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  }
-  if (audioCtx.state === "suspended") audioCtx.resume();
+const platformMeshes = [];
+
+for (const [x,y,w] of platforms) {
+  const group = new THREE.Group();
+  box(group, 0, -.35, 0, w, .7, 3.2, dirtMat);
+  box(group, 0, .04, 0, w, .22, 3.35, grassMat);
+  box(group, 0, .16, 0, w, .08, 3.36, grassTopMat);
+  group.position.set(x,y,0);
+  world.add(group);
+  platformMeshes.push({x,y,w});
 }
 
-function playTone(freq, duration = .18, type = "sine", volume = .08) {
-  if (!soundOn || !audioCtx) return;
-  const osc = audioCtx.createOscillator();
-  const gain = audioCtx.createGain();
-  osc.type = type;
-  osc.frequency.value = freq;
-  gain.gain.setValueAtTime(volume, audioCtx.currentTime);
-  gain.gain.exponentialRampToValueAtTime(
-    .001, audioCtx.currentTime + duration
+// Little grass tufts and flowers
+for (let i=0; i<85; i++) {
+  const x = i*1.15-5;
+  const platform = platforms.find(p => x > p[0]-p[2]/2 && x < p[0]+p[2]/2);
+  if (!platform) continue;
+  const y = platform[1]+.25;
+  const flower = new THREE.Group();
+  sphere(flower,0,.12,0,.12,leafMat,.55,1.5,.5);
+  for (let j=0;j<5;j++) {
+    const a = j*Math.PI*2/5;
+    sphere(flower,Math.cos(a)*.13,.32+Math.sin(a)*.04,0,.12,flowerMat,.8,.8,.7);
+  }
+  sphere(flower,0,.32,0,.07,yellowMat);
+  flower.position.set(x,y,1.5);
+  flower.scale.setScalar(.6+(i%3)*.15);
+  world.add(flower);
+}
+
+// Decorative trees in the background
+for (let i=0;i<13;i++) {
+  const x = i*8-4;
+  const trunk = new THREE.Mesh(
+    new THREE.CylinderGeometry(.15,.22,2.2,8),
+    mat('#a97962')
   );
-  osc.connect(gain);
-  gain.connect(audioCtx.destination);
-  osc.start();
-  osc.stop(audioCtx.currentTime + duration);
+  trunk.position.set(x,1,-7);
+  scene.add(trunk);
+  const crown = sphere(scene,x,2.5,-7,1.25,leafMat,1.1,1.2,.7);
+  crown.castShadow = false;
+  for (let j=0;j<3;j++) {
+    const blossom = sphere(scene,x+(j-1)*.55,2.7+(j%2)*.4,-6.7,.18,flowerMat);
+    blossom.castShadow = false;
+  }
 }
 
-function startMusic() {
-  initAudio();
-  stopMusic();
-  if (!musicOn) return;
-
-  musicTimer = setInterval(() => {
-    if (!running || !musicOn) return;
-    const note = melody[musicStep % melody.length];
-    playTone(note, .32, "sine", .035);
-    if (musicStep % 4 === 0) {
-      playTone(note / 2, .5, "triangle", .018);
+// Small obstacles
+const obstacles = [];
+function addObstacle(x, y, type='mushroom') {
+  const group = new THREE.Group();
+  if (type === 'mushroom') {
+    const stem = new THREE.Mesh(
+      new THREE.CylinderGeometry(.2,.27,.65,12),
+      whiteMat
+    );
+    stem.position.y=.35;
+    group.add(stem);
+    const cap = sphere(group,0,.72,0,.48,mat('#ec83aa'),1.15,.65,1);
+    for (let i=0;i<4;i++) {
+      sphere(group,Math.cos(i*1.6)*.25,.85,Math.sin(i*1.6)*.25,.07,whiteMat);
     }
-    musicStep++;
-  }, 330);
-}
-
-function stopMusic() {
-  if (musicTimer) clearInterval(musicTimer);
-  musicTimer = null;
-}
-
-document.getElementById("musicBtn").onclick = () => {
-  musicOn = !musicOn;
-  document.getElementById("musicBtn").textContent =
-    musicOn ? "♫ Music ON" : "♫ Music OFF";
-  if (musicOn && running) startMusic();
-  else stopMusic();
-};
-
-document.getElementById("soundBtn").onclick = () => {
-  soundOn = !soundOn;
-  document.getElementById("soundBtn").textContent =
-    soundOn ? "♪ Sound ON" : "♪ Sound OFF";
-  if (soundOn) {
-    initAudio();
-    playTone(660, .12);
-  }
-};
-
-/* ---------------- GAMEPLAY ---------------- */
-
-function startGame() {
-  initAudio();
-  buildLevel();
-  running = true;
-  finished = false;
-  message.style.display = "none";
-  startMusic();
-}
-
-function jump() {
-  if (running && cat.position.y < .03) {
-    velocityY = 8.5;
-    playTone(440, .12, "sine", .05);
-  }
-}
-
-function updateGame(delta, time) {
-  if (!running) return;
-
-  const moveSpeed = 5.2;
-  if (keys.left) catX -= moveSpeed * delta;
-  if (keys.right) catX += moveSpeed * delta;
-  catX = THREE.MathUtils.clamp(catX, -3.3, 3.3);
-
-  cat.position.x = THREE.MathUtils.damp(
-    cat.position.x, catX, 12, delta
-  );
-
-  // Automatic forward movement
-  cat.position.z -= 7 * delta;
-  distance = Math.max(0, 2 - cat.position.z);
-
-  // Jump physics
-  velocityY -= 20 * delta;
-  cat.position.y += velocityY * delta;
-  if (cat.position.y < 0) {
-    cat.position.y = 0;
-    velocityY = 0;
-  }
-
-  // Bouncy body animation
-  const airborne = cat.position.y > .05;
-  body.scale.y = .94 + Math.sin(time * 10) * .018;
-  cat.rotation.z = THREE.MathUtils.damp(
-    cat.rotation.z,
-    keys.left ? .12 : keys.right ? -.12 : 0,
-    5, delta
-  );
-  cat.rotation.x = airborne ? -.12 : 0;
-  tail.rotation.x = Math.sin(time * 5) * .13;
-
-  // Obstacles and collectibles
-  for (const obj of [...objects.children]) {
-    obj.rotation.y += delta * (obj.userData.type === "heart" ? 1.8 : .2);
-
-    if (obj.userData.type === "heart") {
-      obj.position.y = obj.userData.baseY +
-        Math.sin(time * 3 + obj.position.z) * .12;
-    }
-
-    const dz = Math.abs(cat.position.z - obj.position.z);
-    const dx = Math.abs(cat.position.x - obj.position.x);
-
-    if (dz < .9 && dx < (obj.userData.type === "heart" ? .85 : 1.0)) {
-      if (obj.userData.type === "heart") {
-        hearts++;
-        playTone(880, .18, "sine", .07);
-        objects.remove(obj);
-      } else if (cat.position.y < .75) {
-        // Gentle bump instead of instant death
-        cat.position.z += .45;
-        velocityY = 2.5;
-        catX += cat.position.x < obj.position.x ? -.4 : .4;
-      }
-    }
-
-    if (obj.position.z > cat.position.z + 5) {
-      objects.remove(obj);
-    }
-  }
-
-  // Camera follows the kitty
-  camera.position.x = THREE.MathUtils.damp(
-    camera.position.x, cat.position.x * .35, 3, delta
-  );
-  camera.position.z = cat.position.z + 10;
-  camera.position.y = 5.3 + cat.position.y * .35;
-  camera.lookAt(cat.position.x * .3, .8, cat.position.z - 5);
-
-  // Progress
-  const pct = Math.min(100, distance / levelLength * 100);
-  progress.style.width = pct + "%";
-  stats.textContent = `Level ${level}  ·  ♡ ${hearts}`;
-
-  if (distance >= levelLength) {
-    finishLevel();
-  }
-}
-
-function finishLevel() {
-  if (finished) return;
-  finished = true;
-  running = false;
-  stopMusic();
-  playTone(783.99, .35, "sine", .08);
-  playTone(1046.5, .5, "sine", .07);
-
-  document.querySelector("#messageCard h1").textContent = "Level Complete! ♡";
-  document.querySelector("#messageCard p").textContent =
-    `You collected ${hearts} hearts! Ready for another meadow adventure?`;
-  mainButton.textContent = "Next Level →";
-  message.style.display = "flex";
-}
-
-mainButton.onclick = () => {
-  if (finished) {
-    level++;
   } else {
-    level = 1;
-    hearts = 0;
+    const rock = sphere(group,0,.35,0,.48,mat('#9a9aa8'),1.2,.8,1);
+    rock.rotation.z=.2;
   }
-  document.querySelector("#messageCard h1").textContent = "♡ PurrBounce ♡";
-  document.querySelector("#messageCard p").textContent =
-    "A little pink kitty, a big green world, and lots of hearts to collect!";
-  mainButton.textContent = "Let's Play!";
-  startGame();
+  group.position.set(x,y,1);
+  world.add(group);
+  obstacles.push({x,y,w:1.0,hit:false,group});
+}
+addObstacle(10,.2);
+addObstacle(24,.2,'rock');
+addObstacle(39,.2);
+addObstacle(53,1.4,'rock');
+addObstacle(67,.2);
+addObstacle(81,.2);
+
+// Collectible hearts
+const collectibles = [];
+function makeHeart(x,y) {
+  const group = new THREE.Group();
+  const heartMat = mat('#ff75a9',.35);
+  sphere(group,-.16,.08,0,.2,heartMat,.85,.9,.65);
+  sphere(group,.16,.08,0,.2,heartMat,.85,.9,.65);
+  const bottom = new THREE.Mesh(
+    new THREE.ConeGeometry(.28,.42,4),
+    heartMat
+  );
+  bottom.rotation.z=Math.PI;
+  bottom.position.y=-.17;
+  group.add(bottom);
+  group.position.set(x,y,1);
+  world.add(group);
+  collectibles.push({group,x,y,taken:false});
+}
+for (let x=4; x<88; x+=5.5) {
+  const p = platforms.find(p => x>p[0]-p[2]/2 && x<p[0]+p[2]/2);
+  if (p) makeHeart(x,p[1]+1.65);
+}
+
+// Goal gate
+const goal = new THREE.Group();
+const gateMat = mat('#f7a2c4');
+const post1 = new THREE.Mesh(new THREE.CylinderGeometry(.12,.12,3,12),gateMat);
+post1.position.set(-.9,1.5,0);
+goal.add(post1);
+const post2 = post1.clone();
+post2.position.x=.9;
+goal.add(post2);
+const arch = new THREE.Mesh(new THREE.TorusGeometry(.9,.12,10,24,Math.PI),gateMat);
+arch.rotation.z=Math.PI;
+arch.position.y=2.9;
+goal.add(arch);
+sphere(goal,0,2.1,.1,.35,flowerMat,1,.8,.5);
+goal.position.set(93,.2,1);
+world.add(goal);
+
+// Kitty character
+const cat = new THREE.Group();
+world.add(cat);
+
+const body = sphere(cat,0,0,0,1,pinkMat,1,1,1);
+const belly = sphere(cat,0,-.25,.79,.42,palePinkMat,1,.75,.25);
+
+// Ears
+function ear(x) {
+  const e = new THREE.Mesh(
+    new THREE.ConeGeometry(.28,.65,4),
+    pinkMat
+  );
+  e.position.set(x,.83,.12);
+  e.rotation.z = x<0 ? .22 : -.22;
+  cat.add(e);
+  const inner = new THREE.Mesh(
+    new THREE.ConeGeometry(.14,.36,4),
+    palePinkMat
+  );
+  inner.position.set(x,.84,.34);
+  inner.rotation.z = e.rotation.z;
+  cat.add(inner);
+}
+ear(-.58);
+ear(.58);
+
+// Eyes
+sphere(cat,-.34,.16,.88,.105,darkMat,.8,1.25,.5);
+sphere(cat,.34,.16,.88,.105,darkMat,.8,1.25,.5);
+sphere(cat,-.37,.2,.95,.035,whiteMat);
+sphere(cat,.31,.2,.95,.035,whiteMat);
+
+// Nose and cheeks
+sphere(cat,0,-.08,1,.085,mat('#e56d9c'),1,.8,.5);
+sphere(cat,-.53,-.12,.85,.15,mat('#ffb4cb'),1,.7,.3);
+sphere(cat,.53,-.12,.85,.15,mat('#ffb4cb'),1,.7,.3);
+
+// Whiskers
+for (const side of [-1,1]) {
+  for (let i=0;i<2;i++) {
+    const whisker = new THREE.Mesh(
+      new THREE.CylinderGeometry(.012,.012,.5,6),
+      whiteMat
+    );
+    whisker.rotation.z = side*(Math.PI/2 + (i-.5)*.22);
+    whisker.position.set(side*.58,-.08-i*.12,.88);
+    cat.add(whisker);
+  }
+}
+
+// Tail
+const tail = new THREE.Mesh(
+  new THREE.TorusGeometry(.38,.12,10,24,Math.PI*1.3),
+  pinkMat
+);
+tail.position.set(-.95,-.2,-.05);
+tail.rotation.z=1.2;
+cat.add(tail);
+
+// Soft shadow
+const shadow = new THREE.Mesh(
+  new THREE.CircleGeometry(.85,32),
+  new THREE.MeshBasicMaterial({color:0x527d59,transparent:true,opacity:.22})
+);
+shadow.rotation.x=-Math.PI/2;
+shadow.position.set(0,.05,1.5);
+world.add(shadow);
+
+const player = {
+  x:0, y:1.2, vx:0, vy:0,
+  radius:1, grounded:false,
+  hearts:0, alive:true
+};
+cat.position.set(player.x,player.y,1);
+
+let started=false;
+let paused=false;
+let won=false;
+let musicOn=true;
+let soundOn=true;
+let audio=null;
+let musicTimer=null;
+let musicStep=0;
+const keys={left:false,right:false,jump:false};
+let jumpQueued=false;
+let lastTime=0;
+let elapsed=0;
+
+const heartCount=document.getElementById('heartCount');
+const progress=document.getElementById('progress');
+const message=document.getElementById('message');
+
+function updateHUD() {
+  heartCount.textContent=player.hearts;
+  progress.style.width=Math.min(100,Math.max(0,player.x/93*100))+'%';
+  document.getElementById('levelNum').textContent='1';
+}
+
+function startAudio() {
+  if (!audio) {
+    audio = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if (audio.state === 'suspended') audio.resume();
+  if (musicOn && !musicTimer) playMusic();
+}
+
+function tone(freq,duration=.14,volume=.035,wave='sine') {
+  if (!audio || !soundOn) return;
+  const osc=audio.createOscillator();
+  const gain=audio.createGain();
+  osc.type=wave;
+  osc.frequency.value=freq;
+  gain.gain.setValueAtTime(volume,audio.currentTime);
+  gain.gain.exponentialRampToValueAtTime(.001,audio.currentTime+duration);
+  osc.connect(gain);
+  gain.connect(audio.destination);
+  osc.start();
+  osc.stop(audio.currentTime+duration);
+}
+
+const melody=[523,659,784,659,587,698,880,698,523,659,784,1046,880,784,659,587];
+function playMusic() {
+  if (!audio || !musicOn) return;
+  if (musicTimer) clearInterval(musicTimer);
+  musicTimer=setInterval(()=>{
+    if (!started || paused || !musicOn) return;
+    const f=melody[musicStep%melody.length];
+    const osc=audio.createOscillator();
+    const gain=audio.createGain();
+    osc.type='sine';
+    osc.frequency.value=f;
+    gain.gain.setValueAtTime(.018,audio.currentTime);
+    gain.gain.exponentialRampToValueAtTime(.001,audio.currentTime+.28);
+    osc.connect(gain);
+    gain.connect(audio.destination);
+    osc.start();
+    osc.stop(audio.currentTime+.3);
+    musicStep++;
+  },300);
+}
+
+function setMusic(on) {
+  musicOn=on;
+  document.getElementById('musicBtn').textContent=on?'♫ Music ON':'♫ Music OFF';
+  if (!on && musicTimer) {
+    clearInterval(musicTimer);
+    musicTimer=null;
+  } else if (on && audio && started) playMusic();
+}
+
+function resetGame() {
+  player.x=0;
+  player.y=1.2;
+  player.vx=0;
+  player.vy=0;
+  player.grounded=false;
+  player.hearts=0;
+  player.alive=true;
+  won=false;
+  cat.position.set(0,1.2,1);
+  cat.rotation.z=0;
+  collectibles.forEach(c=>{
+    c.taken=false;
+    c.group.visible=true;
+  });
+  obstacles.forEach(o=>o.hit=false);
+  updateHUD();
+}
+
+function beginGame() {
+  resetGame();
+  started=true;
+  paused=false;
+  message.classList.add('hidden');
+  startAudio();
+  lastTime=performance.now();
+}
+
+document.getElementById('startBtn').addEventListener('click',()=>{
+  if (won) resetGame();
+  beginGame();
+});
+
+document.getElementById('pauseBtn').addEventListener('click',()=>{
+  if (!started) return;
+  paused=!paused;
+  document.getElementById('pauseBtn').textContent=paused?'▶':'Ⅱ';
+  if (paused) {
+    message.innerHTML='<h1>Taking a break? ♡</h1><p>Your kitty is waiting!</p><button class="mainbtn" id="resumeBtn">Continue</button>';
+    message.classList.remove('hidden');
+    document.getElementById('resumeBtn').onclick=()=>{
+      message.classList.add('hidden');
+      paused=false;
+      document.getElementById('pauseBtn').textContent='Ⅱ';
+      lastTime=performance.now();
+    };
+  } else {
+    message.classList.add('hidden');
+  }
+});
+
+document.getElementById('musicBtn').onclick=()=>{
+  setMusic(!musicOn);
+  if (musicOn) startAudio();
+};
+document.getElementById('soundBtn').onclick=()=>{
+  soundOn=!soundOn;
+  document.getElementById('soundBtn').textContent=soundOn?'🔊 Sound':'🔇 Sound';
+  if (soundOn) tone(660);
 };
 
-/* ---------------- CONTROLS ---------------- */
-
-window.addEventListener("keydown", e => {
-  if (["ArrowLeft", "ArrowRight", "ArrowUp", " "].includes(e.key)) {
-    e.preventDefault();
+// Keyboard controls
+window.addEventListener('keydown',e=>{
+  if (['ArrowLeft','ArrowRight','ArrowUp','Space'].includes(e.code)) e.preventDefault();
+  if (e.code==='ArrowLeft'||e.code==='KeyA') keys.left=true;
+  if (e.code==='ArrowRight'||e.code==='KeyD') keys.right=true;
+  if (e.code==='Space'||e.code==='ArrowUp'||e.code==='KeyW') {
+    if (!keys.jump) jumpQueued=true;
+    keys.jump=true;
   }
-  if (e.key === "ArrowLeft" || e.key.toLowerCase() === "a") keys.left = true;
-  if (e.key === "ArrowRight" || e.key.toLowerCase() === "d") keys.right = true;
-  if (e.key === "ArrowUp" || e.key === " " || e.key.toLowerCase() === "w") {
-    if (!keys.jump) jump();
-    keys.jump = true;
-  }
+  if (e.code==='Escape' && started) document.getElementById('pauseBtn').click();
+});
+window.addEventListener('keyup',e=>{
+  if (e.code==='ArrowLeft'||e.code==='KeyA') keys.left=false;
+  if (e.code==='ArrowRight'||e.code==='KeyD') keys.right=false;
+  if (e.code==='Space'||e.code==='ArrowUp'||e.code==='KeyW') keys.jump=false;
 });
 
-window.addEventListener("keyup", e => {
-  if (e.key === "ArrowLeft" || e.key.toLowerCase() === "a") keys.left = false;
-  if (e.key === "ArrowRight" || e.key.toLowerCase() === "d") keys.right = false;
-  if (e.key === "ArrowUp" || e.key === " " || e.key.toLowerCase() === "w") {
-    keys.jump = false;
-  }
-});
-
-function holdButton(id, key) {
-  const el = document.getElementById(id);
-  el.addEventListener("pointerdown", e => {
+// Mobile controls
+function bindHold(id,key) {
+  const el=document.getElementById(id);
+  el.addEventListener('pointerdown',e=>{
     e.preventDefault();
-    if (key === "jump") jump();
-    else keys[key] = true;
+    keys[key]=true;
+    if (key==='jump') jumpQueued=true;
+    el.setPointerCapture(e.pointerId);
   });
-  const release = () => { if (key !== "jump") keys[key] = false; };
-  el.addEventListener("pointerup", release);
-  el.addEventListener("pointerleave", release);
-  el.addEventListener("pointercancel", release);
+  const release=e=>{ keys[key]=false; };
+  el.addEventListener('pointerup',release);
+  el.addEventListener('pointercancel',release);
+  el.addEventListener('lostpointercapture',release);
+}
+bindHold('leftBtn','left');
+bindHold('rightBtn','right');
+bindHold('jumpBtn','jump');
+
+function finishGame() {
+  won=true;
+  started=false;
+  if (musicTimer) {clearInterval(musicTimer);musicTimer=null;}
+  message.innerHTML=`
+    <h1>Meow-gical! ♡</h1>
+    <p>Your kitty reached the flower gate!<br>
+    You collected <b>${player.hearts}</b> hearts. Great job!</p>
+    <button class="mainbtn" id="againBtn">Play Again ♡</button>`;
+  message.classList.remove('hidden');
+  document.getElementById('againBtn').onclick=beginGame;
+  tone(784,.25);
+  setTimeout(()=>tone(988,.25),180);
+  setTimeout(()=>tone(1175,.4),360);
 }
 
-holdButton("leftBtn", "left");
-holdButton("rightBtn", "right");
-holdButton("jumpBtn", "jump");
+function update(dt) {
+  if (!started || paused || won) return;
 
-/* ---------------- ANIMATION ---------------- */
+  elapsed+=dt;
+  const acceleration=23;
+  const maxSpeed=8.5;
 
-const clock = new THREE.Clock();
-let elapsed = 0;
+  if (keys.left) player.vx-=acceleration*dt;
+  if (keys.right) player.vx+=acceleration*dt;
+  if (!keys.left && !keys.right) player.vx*=Math.pow(.001,dt);
+  player.vx=THREE.MathUtils.clamp(player.vx,-maxSpeed,maxSpeed);
 
-function animate() {
+  if (jumpQueued && player.grounded) {
+    player.vy=10.8;
+    player.grounded=false;
+    tone(520,.12,.04);
+  }
+  jumpQueued=false;
+
+  player.vy-=25*dt;
+  const oldY=player.y;
+  player.x+=player.vx*dt;
+  player.y+=player.vy*dt;
+
+  // Land on platform tops, but only while falling.
+  player.grounded=false;
+  for (const p of platforms) {
+    const left=p[0]-p[2]/2;
+    const right=p[0]+p[2]/2;
+    const top=p[1]+.25;
+    const overlaps=player.x+.72>left && player.x-.72<right;
+    if (overlaps && player.vy<=0 &&
+        oldY-player.radius*.82>=top-.05 &&
+        player.y-player.radius*.82<=top+.1) {
+      player.y=top+player.radius*.82;
+      player.vy=0;
+      player.grounded=true;
+    }
+  }
+
+  // Obstacles slow the kitty down and bounce it slightly.
+  for (const o of obstacles) {
+    if (!o.hit && Math.abs(player.x-o.x)<.85 &&
+        Math.abs(player.y-(o.y+.6))<1.05) {
+      o.hit=true;
+      player.vx=-Math.sign(player.vx||1)*3.2;
+      player.vy=Math.max(player.vy,4);
+      tone(180,.2,.05,'triangle');
+      setTimeout(()=>{o.hit=false;},900);
+    }
+  }
+
+  // Collect hearts.
+  for (const c of collectibles) {
+    if (!c.taken &&
+        Math.hypot(player.x-c.x,player.y-c.y)<1.35) {
+      c.taken=true;
+      c.group.visible=false;
+      player.hearts++;
+      updateHUD();
+      tone(880,.15,.05);
+    }
+  }
+
+  // Falling below the world resets the kitty to the start.
+  if (player.y < -7) {
+    player.x=0;
+    player.y=2;
+    player.vx=0;
+    player.vy=0;
+    player.grounded=false;
+    tone(220,.25,.04);
+  }
+
+  // Keep the player within the level.
+  player.x=Math.max(-3,Math.min(player.x,96));
+
+  // Roll with movement.
+  cat.position.set(player.x,player.y,1);
+  if (player.grounded) {
+    cat.rotation.z-=player.vx*dt*.8;
+  }
+  tail.rotation.z=1.2+Math.sin(elapsed*5)*.15;
+
+  // Floating collectibles.
+  collectibles.forEach(c=>{
+    if (!c.taken) {
+      c.group.position.y=c.y+Math.sin(elapsed*3+c.x)*.12;
+      c.group.rotation.y=Math.sin(elapsed*2+c.x)*.25;
+    }
+  });
+
+  // Camera follows the kitty horizontally.
+  const targetX=player.x+2;
+  camera.position.x += (targetX-camera.position.x)*Math.min(1,dt*3.5);
+  camera.lookAt(camera.position.x,3,0);
+
+  // Shadow follows and gets smaller while airborne.
+  shadow.position.x=player.x;
+  shadow.position.y=.05;
+  shadow.scale.setScalar(Math.max(.45,1-(player.y-1.2)*.08));
+
+  updateHUD();
+
+  if (player.x>91) finishGame();
+}
+
+function animate(time) {
   requestAnimationFrame(animate);
-  const delta = Math.min(clock.getDelta(), .04);
-  elapsed += delta;
-
-  updateGame(delta, elapsed);
-
-  // Gentle cloud movement
-  clouds.children.forEach((cloud, i) => {
-    cloud.position.x += Math.sin(elapsed * .15 + i) * delta * .08;
-  });
-
-  renderer.render(scene, camera);
+  const dt=Math.min((time-lastTime)/1000||0,0.035);
+  lastTime=time;
+  update(dt);
+  renderer.render(scene,camera);
 }
-animate();
+requestAnimationFrame(animate);
 
-/* ---------------- RESIZE ---------------- */
-
-window.addEventListener("resize", () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
+window.addEventListener('resize',()=>{
+  const aspect=window.innerWidth/window.innerHeight;
+  const height=6.2;
+  camera.left=-height*aspect;
+  camera.right=height*aspect;
+  camera.top=height;
+  camera.bottom=-height;
   camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setSize(window.innerWidth,window.innerHeight);
 });
 </script>
 </body>
