@@ -1,1 +1,380 @@
 
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+
+:root {
+  --pink:#e99abd;
+  --dark:#c66e98;
+  --light:#fff0f6;
+  --text:#86516c;
+  --border:#f4d6e4;
+  --board-light:#ffeaf3;
+  --board-dark:#e6a9c5;
+}
+
+* { box-sizing:border-box; }
+
+body {
+  margin:0;
+  background:#fff6fa;
+  color:var(--text);
+  font-family:'Nunito',sans-serif;
+}
+
+button,input,select { font:inherit; }
+
+.header {
+  text-align:center;
+  padding:30px 15px 22px;
+}
+
+.logo {
+  font-size:clamp(28px,6vw,43px);
+  font-weight:900;
+  color:var(--dark);
+}
+
+.header p { color:#bd8da6; }
+
+.online-status {
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  border-radius:30px;
+  background:white;
+  padding:8px 14px;
+  font-size:12px;
+  border:1px solid var(--border);
+}
+
+.status-dot {
+  width:9px;
+  height:9px;
+  background:#b6a5b0;
+  border-radius:50%;
+}
+
+.online-status.connected .status-dot {
+  background:#63b98c;
+}
+
+main {
+  max-width:720px;
+  padding:0 14px 35px;
+  margin:auto;
+}
+
+.card {
+  background:white;
+  border:2px solid var(--border);
+  border-radius:23px;
+  padding:21px;
+  margin-bottom:18px;
+  box-shadow:0 5px 18px #dfb4c522;
+}
+
+.section-title {
+  color:var(--dark);
+  font-size:21px;
+  font-weight:900;
+  margin-bottom:17px;
+}
+
+label {
+  display:block;
+  font-weight:800;
+  margin:13px 0 6px;
+}
+
+input,select {
+  width:100%;
+  padding:12px 13px;
+  background:#fff8fb;
+  border:2px solid var(--border);
+  border-radius:12px;
+  color:var(--text);
+  outline:none;
+}
+
+input:focus,select:focus {
+  border-color:var(--pink);
+}
+
+button {
+  border:0;
+  padding:12px 16px;
+  border-radius:13px;
+  background:var(--pink);
+  color:white;
+  font-weight:900;
+  cursor:pointer;
+  transition:.2s;
+}
+
+button:hover:not(:disabled) {
+  background:var(--dark);
+  transform:translateY(-1px);
+}
+
+button:disabled {
+  opacity:.45;
+  cursor:not-allowed;
+}
+
+.primary { background:var(--pink); }
+.secondary { background:#c49ab0; }
+.danger { background:#ca7198; }
+.full { width:100%; margin-top:12px; }
+
+.mode-grid {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+
+.play-options {
+  display:grid;
+  grid-template-columns:1fr;
+  gap:10px;
+}
+
+.room-area {
+  padding:15px;
+  margin-top:15px;
+  border-radius:15px;
+  background:#fff2f7;
+  border:1px solid var(--border);
+}
+
+.hidden { display:none!important; }
+
+.copy-row {
+  display:flex;
+  gap:7px;
+}
+
+.copy-row input { min-width:0; }
+
+.copy-row button { flex-shrink:0; }
+
+.small-note {
+  font-size:12px;
+  color:#b38ba0;
+  line-height:1.6;
+}
+
+.game-info {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-bottom:14px;
+}
+
+.player-info {
+  background:#fff0f6;
+  border-radius:15px;
+  padding:12px;
+  text-align:center;
+  border:2px solid transparent;
+  overflow-wrap:anywhere;
+}
+
+.player-info.active {
+  border-color:var(--pink);
+}
+
+.player-info span {
+  display:block;
+  font-weight:800;
+  font-size:13px;
+}
+
+.player-info strong {
+  display:block;
+  font-size:28px;
+  color:var(--dark);
+  font-variant-numeric:tabular-nums;
+}
+
+.board {
+  width:100%;
+  max-width:560px;
+  aspect-ratio:1;
+  margin:auto;
+  display:grid;
+  grid-template-columns:repeat(8,1fr);
+  border:5px solid #d999b7;
+  border-radius:8px;
+  overflow:hidden;
+  touch-action:manipulation;
+}
+
+.square {
+  min-width:0;
+  min-height:0;
+  border-radius:0;
+  padding:0;
+  aspect-ratio:1;
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.square.light { background:var(--board-light); }
+.square.dark { background:var(--board-dark); }
+
+.square.selected { background:#ffdb79; }
+
+.square .piece {
+  position:relative;
+  z-index:1;
+  font-family:'Segoe UI Symbol',sans-serif;
+  font-size:clamp(22px,8vw,55px);
+  line-height:1;
+  user-select:none;
+}
+
+.square .piece.white {
+  color:#fff;
+  text-shadow:1px 2px 3px #654255;
+}
+
+.square .piece.black {
+  color:#684257;
+  text-shadow:1px 1px 2px white;
+}
+
+.square.legal:after {
+  content:"";
+  position:absolute;
+  width:23%;
+  height:23%;
+  border-radius:50%;
+  background:#9d6380;
+  opacity:.65;
+}
+
+.square.legal.capture:after {
+  width:85%;
+  height:85%;
+  background:transparent;
+  border:4px solid #9d6380;
+}
+
+.game-status {
+  text-align:center;
+  padding:15px 5px;
+  min-height:45px;
+  color:var(--dark);
+  font-weight:900;
+}
+
+.action-row {
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
+}
+
+.action-row button { padding:10px 5px; }
+
+.promotion {
+  background:#fff0f6;
+  border-radius:13px;
+  padding:12px;
+  margin-top:12px;
+  text-align:center;
+}
+
+.promotion button { margin:4px; }
+
+.score-grid {
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+  text-align:center;
+}
+
+.score-grid div {
+  background:#fff0f6;
+  border-radius:14px;
+  padding:13px 4px;
+}
+
+.score-grid strong {
+  display:block;
+  font-size:30px;
+  color:var(--dark);
+}
+
+.score-grid span {
+  font-size:12px;
+}
+
+.points {
+  background:#fff0f6;
+  border-radius:14px;
+  padding:15px;
+  text-align:center;
+  color:var(--dark);
+  font-size:24px;
+  font-weight:900;
+  margin:14px 0;
+}
+
+h3 { color:var(--dark); }
+
+.history-list {
+  margin-bottom:15px;
+}
+
+.match {
+  padding:12px 4px;
+  border-bottom:1px solid var(--border);
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+}
+
+.match small {
+  display:block;
+  font-size:11px;
+  color:#b18aa0;
+}
+
+.match-result {
+  text-align:right;
+  font-weight:900;
+}
+
+details {
+  background:#fff3f8;
+  padding:13px;
+  margin:9px 0;
+  border-radius:12px;
+}
+
+summary {
+  cursor:pointer;
+  font-weight:800;
+}
+
+.instructions {
+  padding-left:22px;
+  line-height:2;
+  font-size:14px;
+}
+
+footer {
+  text-align:center;
+  color:#bc8aa3;
+  padding:25px;
+}
+
+@media(max-width:420px) {
+  main { padding:0 8px 25px; }
+  .card { padding:14px; }
+  .square .piece { font-size:9vw; }
+  .player-info strong { font-size:23px; }
+  .action-row button { font-size:12px; }
+}
+
