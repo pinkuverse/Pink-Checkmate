@@ -3,797 +3,813 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>PurrBounce ♡</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&display=swap');
 
-  * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    overflow: hidden;
-    font-family: 'Baloo 2', sans-serif;
-    background: #f9dce9;
-    color: #75445f;
-    user-select: none;
-  }
-  canvas { display: block; }
-  #hud {
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    padding: 16px;
-  }
-  .topbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 10px;
-  }
-  .panel {
-    background: rgba(255,255,255,.82);
-    border: 2px solid rgba(255,255,255,.95);
-    border-radius: 18px;
-    padding: 8px 15px;
-    box-shadow: 0 5px 15px #b76d9220;
-    backdrop-filter: blur(8px);
-  }
-  .logo { font-size: 24px; font-weight: 800; line-height: 1; }
-  .small { font-size: 13px; opacity: .8; }
-  #stats { display:flex; gap:8px; font-weight:700; }
-  #progressWrap {
-    width: min(250px, 40vw);
-    height: 12px;
-    background: #f3c7da;
-    border-radius: 20px;
-    overflow: hidden;
-    margin-top: 6px;
-  }
-  #progress {
-    width: 0%;
-    height: 100%;
-    background: linear-gradient(90deg,#ff8fba,#f5b5d2);
-    border-radius: 20px;
-  }
-  #buttons {
-    display: flex;
-    gap: 7px;
-    pointer-events: auto;
-  }
-  .hudbtn {
-    border: 0;
-    border-radius: 14px;
-    background: #fff;
-    color: #9c5b7b;
-    font: 700 14px 'Baloo 2';
-    padding: 8px 12px;
-    cursor: pointer;
-    box-shadow: 0 4px 10px #9b527522;
-  }
-  #message {
-    position: fixed;
-    left: 50%;
-    top: 45%;
-    transform: translate(-50%,-50%);
-    text-align: center;
-    width: min(90%, 430px);
-    padding: 28px;
-    background: rgba(255,255,255,.94);
-    border: 3px solid white;
-    border-radius: 28px;
-    box-shadow: 0 15px 50px #7d476044;
-    z-index: 5;
-  }
-  #message h1 { margin: 0 0 4px; font-size: 38px; color: #e77da9; }
-  #message p { margin: 5px 0 18px; line-height: 1.4; }
-  .mainbtn {
-    border: 0;
-    border-radius: 18px;
-    background: linear-gradient(135deg,#ff9fc5,#ec79a9);
-    color: white;
-    font: 800 19px 'Baloo 2';
-    padding: 10px 30px;
-    cursor: pointer;
-    box-shadow: 0 5px 0 #d76696;
-  }
-  #touchControls {
-    position: fixed;
-    bottom: 20px;
-    left: 0;
-    right: 0;
-    display: flex;
-    justify-content: space-between;
-    padding: 0 22px;
-    pointer-events: none;
-  }
-  .touchGroup { display:flex; gap:12px; }
-  .touch {
-    pointer-events: auto;
-    width: 60px;
-    height: 60px;
-    border: 2px solid #fff;
-    border-radius: 20px;
-    background: #ffffffbb;
-    color: #b45f86;
-    font: 800 25px 'Baloo 2';
-    box-shadow: 0 5px 15px #80405b22;
-    touch-action: none;
-  }
-  .hidden { display:none !important; }
-  @media (max-width:600px) {
-    .logo { font-size:20px; }
-    .panel { padding:7px 10px; }
-    .hudbtn { padding:6px 9px; font-size:12px; }
-    #touchControls { bottom:15px; }
-    .touch { width:55px; height:55px; }
-  }
+*{box-sizing:border-box}
+body{margin:0;overflow:hidden;font-family:'Baloo 2',sans-serif;background:#9bd7e9;color:#75445f}
+canvas{display:block}
+button{font-family:inherit;cursor:pointer}
+#hud{position:fixed;inset:0;padding:15px;pointer-events:none}
+.top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.panel{background:#fffF;border:2px solid #fff;border-radius:20px;padding:8px 14px;box-shadow:0 5px 15px #70425a25;backdrop-filter:blur(8px)}
+.logo{font-size:25px;font-weight:800;line-height:1;color:#e66e9e}
+.sub{font-size:12px;color:#96677e}
+#stats{display:flex;gap:8px;font-weight:800}
+#progressWrap{height:9px;width:min(180px,30vw);background:#f2c4d6;border-radius:20px;margin-top:5px;overflow:hidden}
+#progress{height:100%;width:0;background:linear-gradient(90deg,#f56fa6,#ffbd65);border-radius:20px}
+#topButtons{display:flex;gap:7px;pointer-events:auto}
+.uiBtn{border:0;background:#fff;color:#a6537a;border-radius:14px;padding:8px 12px;font-size:15px;font-weight:800;box-shadow:0 4px 10px #70425a20}
+.uiBtn:active,.mainBtn:active{transform:translateY(2px)}
+#overlay{position:fixed;inset:0;background:#28404b55;display:flex;align-items:center;justify-content:center;padding:16px;z-index:5;backdrop-filter:blur(5px)}
+#dialog{width:min(440px,95vw);max-height:88vh;overflow:auto;text-align:center;background:#fffafc;border:4px solid white;border-radius:30px;padding:25px 22px;box-shadow:0 15px 50px #57334c44}
+#dialog h1{font-size:36px;color:#e56e9e;margin:0 0 5px;line-height:1.1}
+#dialog h2{color:#df79a1;margin:5px 0 12px}
+#dialog p{margin:7px 0 16px;line-height:1.4}
+.mainBtn{border:0;background:linear-gradient(135deg,#ff8db9,#e85e99);color:white;font-size:19px;font-weight:800;padding:10px 28px;border-radius:17px;box-shadow:0 5px 0 #c64d83;margin:5px}
+.secondary{background:#f8e5ee;color:#a45b7c;box-shadow:0 4px 0 #e6c4d4}
+.buttonRow{display:flex;justify-content:center;flex-wrap:wrap;gap:5px}
+.skinGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:15px 0}
+.skin{border:3px solid #f2dce6;border-radius:17px;background:white;padding:10px 4px;color:#80516a;font-weight:700}
+.skin.selected{border-color:#ec79a6;background:#fff0f6}
+.skinDot{width:37px;height:37px;border-radius:50%;margin:0 auto 5px;border:3px solid #ffffff;box-shadow:0 2px 7px #0002}
+.levelGrid{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin:14px 0}
+.levelButton{border:0;border-radius:12px;padding:9px 0;background:#f7e6ee;color:#9d5c7c;font-weight:800}
+.levelButton.unlocked{background:#ffe0ed;color:#d45c91}
+.levelButton.current{background:#e879a6;color:white}
+.levelButton:disabled{opacity:.35;cursor:not-allowed}
+#touchControls{position:fixed;bottom:17px;left:0;right:0;display:flex;justify-content:space-between;padding:0 20px;pointer-events:none}
+.touchGroup{display:flex;gap:10px}
+.touch{pointer-events:auto;width:59px;height:59px;border:3px solid white;border-radius:19px;background:#ffffffd9;color:#a84f78;font-size:25px;font-weight:800;box-shadow:0 5px 12px #57334c25;touch-action:none}
+.hidden{display:none!important}
+@media(max-width:600px){
+ .logo{font-size:20px}.panel{padding:7px 10px}
+ .uiBtn{padding:7px 9px;font-size:12px}
+ #stats{font-size:13px}.sub{font-size:10px}
+ .touch{width:54px;height:54px}
+}
 </style>
 </head>
 <body>
 
 <div id="hud">
-  <div class="topbar">
-    <div class="panel">
-      <div class="logo">🐾 PurrBounce</div>
-      <div class="small">A little adventure ♡</div>
-    </div>
-
-    <div id="stats">
-      <div class="panel">
-        <div>💗 <span id="heartCount">0</span></div>
-        <div class="small">Hearts</div>
-      </div>
-      <div class="panel">
-        <div>🌷 Level <span id="levelNum">1</span></div>
-        <div id="progressWrap"><div id="progress"></div></div>
-      </div>
-    </div>
-
-    <div id="buttons">
-      <button class="hudbtn" id="musicBtn">♫ Music ON</button>
-      <button class="hudbtn" id="soundBtn">🔊 Sound</button>
-      <button class="hudbtn" id="pauseBtn">Ⅱ</button>
-    </div>
+ <div class="top">
+  <div class="panel">
+   <div class="logo">🐾 PurrBounce</div>
+   <div class="sub">A little kitty adventure ♡</div>
   </div>
+  <div id="stats">
+   <div class="panel">💗 <span id="heartCount">0</span><div class="sub">Hearts</div></div>
+   <div class="panel">🌷 Level <span id="levelNum">1</span>
+    <div id="progressWrap"><div id="progress"></div></div>
+   </div>
+  </div>
+  <div id="topButtons">
+   <button class="uiBtn" id="musicBtn">♫</button>
+   <button class="uiBtn" id="pauseBtn">Ⅱ</button>
+  </div>
+ </div>
 </div>
 
-<div id="message">
-  <h1>PurrBounce ♡</h1>
-  <p>Help your little kitty explore the garden!<br>
-  Collect hearts, jump over obstacles, and reach the flower gate.</p>
-  <p class="small">← → or A / D to move · Space / ↑ to jump</p>
-  <button class="mainbtn" id="startBtn">Let's Play! ♡</button>
+<div id="overlay">
+ <div id="dialog">
+  <h1>🐱 PurrBounce</h1>
+  <p>Help your little kitty explore the world!<br>Collect hearts and reach the flower gate.</p>
+  <p class="sub">Move: A / D or ← →<br>Jump: Space, W, or ↑</p>
+  <div class="buttonRow">
+   <button class="mainBtn" id="playBtn">Let's Play! ♡</button>
+   <button class="mainBtn secondary" id="skinMenuBtn">Cat Skins</button>
+   <button class="mainBtn secondary" id="levelMenuBtn">Levels</button>
+  </div>
+ </div>
 </div>
 
 <div id="touchControls">
-  <div class="touchGroup">
-    <button class="touch" id="leftBtn">◀</button>
-    <button class="touch" id="rightBtn">▶</button>
-  </div>
-  <button class="touch" id="jumpBtn">↑</button>
+ <div class="touchGroup">
+  <button class="touch" id="leftBtn">◀</button>
+  <button class="touch" id="rightBtn">▶</button>
+ </div>
+ <button class="touch" id="jumpBtn">↑</button>
 </div>
 
 <script type="importmap">
-{
-  "imports": {
-    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"
-  }
-}
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}
 </script>
 
 <script type="module">
 import * as THREE from 'three';
+import {RoundedBoxGeometry} from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/geometries/RoundedBoxGeometry.js';
 
-const scene = new THREE.Scene();
-scene.background = new THREE.Color('#ccecf4');
-scene.fog = new THREE.Fog('#ccecf4', 28, 90);
+// ---------- SCENE ----------
+const scene=new THREE.Scene();
+scene.background=new THREE.Color('#a9e0ed');
+scene.fog=new THREE.Fog('#a9e0ed',35,100);
 
-const camera = new THREE.OrthographicCamera(-11, 11, 6.2, -6.2, 0.1, 150);
-camera.position.set(0, 5, 24);
-camera.lookAt(0, 3, 0);
+const camera=new THREE.OrthographicCamera(-10,10,5.65,-5.65,.1,150);
+camera.position.set(0,4,25);
+camera.lookAt(0,3,0);
 
-const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-renderer.outputColorSpace = THREE.SRGBColorSpace;
-renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.15;
+const renderer=new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(innerWidth,innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.shadowMap.enabled=true;
+renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.outputColorSpace=THREE.SRGBColorSpace;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure=1.25;
 document.body.appendChild(renderer.domElement);
 
-scene.add(new THREE.HemisphereLight(0xffffff, 0x9bba91, 2));
+scene.add(new THREE.HemisphereLight(0xffffff,0x719c73,2.1));
+const sun=new THREE.DirectionalLight(0xfff2dc,2.6);
+sun.position.set(-6,12,12);
+sun.castShadow=true;
+sun.shadow.mapSize.set(2048,2048);
+sun.shadow.camera.left=-40;
+sun.shadow.camera.right=40;
+sun.shadow.camera.top=20;
+sun.shadow.camera.bottom=-20;
+scene.add(sun);
 
-const sunlight = new THREE.DirectionalLight(0xffffff, 2.2);
-sunlight.position.set(-5, 12, 10);
-sunlight.castShadow = true;
-sunlight.shadow.mapSize.set(2048, 2048);
-sunlight.shadow.camera.left = -35;
-sunlight.shadow.camera.right = 35;
-sunlight.shadow.camera.top = 20;
-sunlight.shadow.camera.bottom = -20;
-scene.add(sunlight);
-
-const mat = (color, roughness=0.85) =>
-  new THREE.MeshStandardMaterial({ color, roughness });
-
-const grassMat = mat('#83c98a');
-const grassTopMat = mat('#a5df9c');
-const dirtMat = mat('#b98269');
-const pinkMat = mat('#f58eb9');
-const palePinkMat = mat('#ffd2e2');
-const whiteMat = mat('#fff8f4');
-const darkMat = mat('#5a3b50');
-const leafMat = mat('#65b982');
-const flowerMat = mat('#ff9fc6');
-const yellowMat = mat('#ffdf83');
-
-const world = new THREE.Group();
+const world=new THREE.Group();
 scene.add(world);
 
-function box(parent, x,y,z, sx,sy,sz, material, cast=true) {
-  const mesh = new THREE.Mesh(
-    new THREE.BoxGeometry(sx,sy,sz), material
-  );
-  mesh.position.set(x,y,z);
-  mesh.castShadow = cast;
-  mesh.receiveShadow = true;
-  parent.add(mesh);
-  return mesh;
+const material=(color,roughness=.8)=>new THREE.MeshStandardMaterial({color,roughness});
+const grass=material('#55b96d');
+const grassTop=material('#8cdb78');
+const dirt=material('#b87855');
+const dirtSide=material('#986044');
+const white=material('#fff8f1');
+const dark=material('#493444');
+const pink=material('#f58bb4');
+const blush=material('#ffb2c9');
+const leaf=material('#43a967');
+
+function rounded(parent,x,y,z,sx,sy,sz,mat,r=.15){
+ const mesh=new THREE.Mesh(new RoundedBoxGeometry(sx,sy,sz,4,r),mat);
+ mesh.position.set(x,y,z);
+ mesh.castShadow=true;
+ mesh.receiveShadow=true;
+ parent.add(mesh);
+ return mesh;
+}
+function ball(parent,x,y,z,r,mat,sx=1,sy=1,sz=1){
+ const mesh=new THREE.Mesh(new THREE.SphereGeometry(r,32,24),mat);
+ mesh.position.set(x,y,z);
+ mesh.scale.set(sx,sy,sz);
+ mesh.castShadow=true;
+ mesh.receiveShadow=true;
+ parent.add(mesh);
+ return mesh;
 }
 
-function sphere(parent, x,y,z, radius, material, sx=1,sy=1,sz=1) {
-  const mesh = new THREE.Mesh(
-    new THREE.SphereGeometry(radius, 24, 18), material
-  );
-  mesh.position.set(x,y,z);
-  mesh.scale.set(sx,sy,sz);
-  mesh.castShadow = true;
-  mesh.receiveShadow = true;
-  parent.add(mesh);
-  return mesh;
+// ---------- BACKGROUND ----------
+const skyHills=[];
+for(let i=0;i<16;i++){
+ const h=ball(scene,i*8-20,-1.6+(i%3)*.35,-12,5,
+ material(i%2?'#73c995':'#83d3a0'),1.7,.7,.2);
+ h.castShadow=false;
+ skyHills.push(h);
+}
+for(let i=0;i<12;i++){
+ const c=new THREE.Group();
+ ball(c,0,0,0,.8,white,1.5,.65,.5);
+ ball(c,-.7,-.1,0,.6,white,1,.8,.6);
+ ball(c,.7,-.05,0,.6,white,1,.8,.6);
+ c.position.set(i*12-5,7+(i%3),-9);
+ scene.add(c);
+}
+for(let i=0;i<16;i++){
+ const x=i*7-5;
+ const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.13,.22,2,10),material('#986348'));
+ trunk.position.set(x,1,-7);
+ scene.add(trunk);
+ ball(scene,x,2.2,-7,1.2,material(i%2?'#3eaa72':'#59bd78'),1.15,1.1,.75);
+ for(let j=0;j<3;j++)ball(scene,x+(j-1)*.5,2.5,-6.4,.15,material('#ffb1c9'));
 }
 
-// Soft background hills
-for (let i=0; i<12; i++) {
-  const hill = sphere(
-    scene,
-    i*10-25, -1.5 + Math.sin(i*2)*.4, -12,
-    5.5,
-    mat(i%2 ? '#a9dcae' : '#b8e5bd'),
-    1.6,.7,.18
-  );
-  hill.castShadow = false;
-}
-
-// Clouds
-for (let i=0; i<9; i++) {
-  const cloud = new THREE.Group();
-  sphere(cloud,0,0,0,0.8,whiteMat,1.5,.65,.5);
-  sphere(cloud,-.8,-.1,0,.55,whiteMat,1,.8,.6);
-  sphere(cloud,.7,-.05,0,.6,whiteMat,1,.8,.6);
-  cloud.position.set(i*13-8, 7+(i%3)*1.2, -8);
-  cloud.scale.setScalar(.8 + (i%2)*.25);
-  scene.add(cloud);
-}
-
-// Level layout: platform x, top height, width
-const platforms = [
-  [-2,0,14],
-  [15,0,12],
-  [29,1.0,9],
-  [42,0,12],
-  [57,1.2,10],
-  [71,0,17],
-  [89,0,12]
-];
-
-const platformMeshes = [];
-
-for (const [x,y,w] of platforms) {
-  const group = new THREE.Group();
-  box(group, 0, -.35, 0, w, .7, 3.2, dirtMat);
-  box(group, 0, .04, 0, w, .22, 3.35, grassMat);
-  box(group, 0, .16, 0, w, .08, 3.36, grassTopMat);
-  group.position.set(x,y,0);
-  world.add(group);
-  platformMeshes.push({x,y,w});
-}
-
-// Little grass tufts and flowers
-for (let i=0; i<85; i++) {
-  const x = i*1.15-5;
-  const platform = platforms.find(p => x > p[0]-p[2]/2 && x < p[0]+p[2]/2);
-  if (!platform) continue;
-  const y = platform[1]+.25;
-  const flower = new THREE.Group();
-  sphere(flower,0,.12,0,.12,leafMat,.55,1.5,.5);
-  for (let j=0;j<5;j++) {
-    const a = j*Math.PI*2/5;
-    sphere(flower,Math.cos(a)*.13,.32+Math.sin(a)*.04,0,.12,flowerMat,.8,.8,.7);
-  }
-  sphere(flower,0,.32,0,.07,yellowMat);
-  flower.position.set(x,y,1.5);
-  flower.scale.setScalar(.6+(i%3)*.15);
-  world.add(flower);
-}
-
-// Decorative trees in the background
-for (let i=0;i<13;i++) {
-  const x = i*8-4;
-  const trunk = new THREE.Mesh(
-    new THREE.CylinderGeometry(.15,.22,2.2,8),
-    mat('#a97962')
-  );
-  trunk.position.set(x,1,-7);
-  scene.add(trunk);
-  const crown = sphere(scene,x,2.5,-7,1.25,leafMat,1.1,1.2,.7);
-  crown.castShadow = false;
-  for (let j=0;j<3;j++) {
-    const blossom = sphere(scene,x+(j-1)*.55,2.7+(j%2)*.4,-6.7,.18,flowerMat);
-    blossom.castShadow = false;
-  }
-}
-
-// Small obstacles
-const obstacles = [];
-function addObstacle(x, y, type='mushroom') {
-  const group = new THREE.Group();
-  if (type === 'mushroom') {
-    const stem = new THREE.Mesh(
-      new THREE.CylinderGeometry(.2,.27,.65,12),
-      whiteMat
-    );
-    stem.position.y=.35;
-    group.add(stem);
-    const cap = sphere(group,0,.72,0,.48,mat('#ec83aa'),1.15,.65,1);
-    for (let i=0;i<4;i++) {
-      sphere(group,Math.cos(i*1.6)*.25,.85,Math.sin(i*1.6)*.25,.07,whiteMat);
-    }
-  } else {
-    const rock = sphere(group,0,.35,0,.48,mat('#9a9aa8'),1.2,.8,1);
-    rock.rotation.z=.2;
-  }
-  group.position.set(x,y,1);
-  world.add(group);
-  obstacles.push({x,y,w:1.0,hit:false,group});
-}
-addObstacle(10,.2);
-addObstacle(24,.2,'rock');
-addObstacle(39,.2);
-addObstacle(53,1.4,'rock');
-addObstacle(67,.2);
-addObstacle(81,.2);
-
-// Collectible hearts
-const collectibles = [];
-function makeHeart(x,y) {
-  const group = new THREE.Group();
-  const heartMat = mat('#ff75a9',.35);
-  sphere(group,-.16,.08,0,.2,heartMat,.85,.9,.65);
-  sphere(group,.16,.08,0,.2,heartMat,.85,.9,.65);
-  const bottom = new THREE.Mesh(
-    new THREE.ConeGeometry(.28,.42,4),
-    heartMat
-  );
-  bottom.rotation.z=Math.PI;
-  bottom.position.y=-.17;
-  group.add(bottom);
-  group.position.set(x,y,1);
-  world.add(group);
-  collectibles.push({group,x,y,taken:false});
-}
-for (let x=4; x<88; x+=5.5) {
-  const p = platforms.find(p => x>p[0]-p[2]/2 && x<p[0]+p[2]/2);
-  if (p) makeHeart(x,p[1]+1.65);
-}
-
-// Goal gate
-const goal = new THREE.Group();
-const gateMat = mat('#f7a2c4');
-const post1 = new THREE.Mesh(new THREE.CylinderGeometry(.12,.12,3,12),gateMat);
-post1.position.set(-.9,1.5,0);
-goal.add(post1);
-const post2 = post1.clone();
-post2.position.x=.9;
-goal.add(post2);
-const arch = new THREE.Mesh(new THREE.TorusGeometry(.9,.12,10,24,Math.PI),gateMat);
-arch.rotation.z=Math.PI;
-arch.position.y=2.9;
-goal.add(arch);
-sphere(goal,0,2.1,.1,.35,flowerMat,1,.8,.5);
-goal.position.set(93,.2,1);
-world.add(goal);
-
-// Kitty character
-const cat = new THREE.Group();
+// ---------- KITTY ----------
+const cat=new THREE.Group();
 world.add(cat);
+let currentSkin=0;
+const skins=[
+ {name:'Strawberry',color:'#f58bb4',inner:'#ffd1df',blush:'#ffabc7'},
+ {name:'Vanilla',color:'#f5d9a0',inner:'#fff0cf',blush:'#f6b7a5'},
+ {name:'Mochi',color:'#fff0e5',inner:'#f8c4d8',blush:'#f4a7bd'},
+ {name:'Blueberry',color:'#8db9ed',inner:'#d7e9ff',blush:'#e2a9c9'},
+ {name:'Lavender',color:'#b59be5',inner:'#e6d7ff',blush:'#e7a9cf'},
+ {name:'Chocolate',color:'#a97765',inner:'#e9c0a6',blush:'#eaa9a1'}
+];
+let catMaterials={};
 
-const body = sphere(cat,0,0,0,1,pinkMat,1,1,1);
-const belly = sphere(cat,0,-.25,.79,.42,palePinkMat,1,.75,.25);
+function makeKitty(){
+ cat.clear();
+ const skin=skins[currentSkin];
+ const bodyMat=material(skin.color,.55);
+ const innerMat=material(skin.inner,.7);
+ const blushMat=material(skin.blush,.7);
+ catMaterials={bodyMat,innerMat};
 
-// Ears
-function ear(x) {
-  const e = new THREE.Mesh(
-    new THREE.ConeGeometry(.28,.65,4),
-    pinkMat
+ // Rounded fluffy body
+ ball(cat,0,0,0,.79,bodyMat,1.05,.96,.88);
+ // Cheeks and muzzle
+ ball(cat,-.28,-.17,.69,.22,blushMat,1,.8,.45);
+ ball(cat,.28,-.17,.69,.22,blushMat,1,.8,.45);
+ ball(cat,0,-.14,.82,.23,innerMat,1,.72,.48);
+
+ // Ears: rounded cones, with inner ears
+ for(const side of [-1,1]){
+  const ear=new THREE.Mesh(new THREE.SphereGeometry(.32,24,18),bodyMat);
+  ear.scale.set(.72,1.3,.48);
+  ear.position.set(side*.48,.62,.05);
+  ear.rotation.z=-side*.3;
+  cat.add(ear);
+  const inside=new THREE.Mesh(new THREE.SphereGeometry(.19,24,18),innerMat);
+  inside.scale.set(.7,1.15,.3);
+  inside.position.set(side*.48,.66,.28);
+  inside.rotation.z=-side*.3;
+  cat.add(inside);
+ }
+
+ // Big expressive eyes
+ for(const side of [-1,1]){
+  ball(cat,side*.27,.12,.76,.115,dark, .8,1.25,.45);
+  ball(cat,side*.29,.17,.81,.035,white,.8,1,.4);
+  ball(cat,side*.27,-.12,.77,.09,blushMat,1,.65,.4);
+ }
+
+ // Tiny nose
+ ball(cat,0,-.035,.99,.065,material('#d95e8b'),1,.75,.5);
+
+ // Smile curves
+ for(const side of [-1,1]){
+  const curve=new THREE.QuadraticBezierCurve3(
+   new THREE.Vector3(0,-.13,1),
+   new THREE.Vector3(side*.09,-.24,1),
+   new THREE.Vector3(side*.18,-.17,.97)
   );
-  e.position.set(x,.83,.12);
-  e.rotation.z = x<0 ? .22 : -.22;
-  cat.add(e);
-  const inner = new THREE.Mesh(
-    new THREE.ConeGeometry(.14,.36,4),
-    palePinkMat
+  const line=new THREE.Mesh(
+   new THREE.TubeGeometry(curve,12,.018,6,false),
+   dark
   );
-  inner.position.set(x,.84,.34);
-  inner.rotation.z = e.rotation.z;
-  cat.add(inner);
-}
-ear(-.58);
-ear(.58);
+  cat.add(line);
+ }
 
-// Eyes
-sphere(cat,-.34,.16,.88,.105,darkMat,.8,1.25,.5);
-sphere(cat,.34,.16,.88,.105,darkMat,.8,1.25,.5);
-sphere(cat,-.37,.2,.95,.035,whiteMat);
-sphere(cat,.31,.2,.95,.035,whiteMat);
-
-// Nose and cheeks
-sphere(cat,0,-.08,1,.085,mat('#e56d9c'),1,.8,.5);
-sphere(cat,-.53,-.12,.85,.15,mat('#ffb4cb'),1,.7,.3);
-sphere(cat,.53,-.12,.85,.15,mat('#ffb4cb'),1,.7,.3);
-
-// Whiskers
-for (const side of [-1,1]) {
-  for (let i=0;i<2;i++) {
-    const whisker = new THREE.Mesh(
-      new THREE.CylinderGeometry(.012,.012,.5,6),
-      whiteMat
-    );
-    whisker.rotation.z = side*(Math.PI/2 + (i-.5)*.22);
-    whisker.position.set(side*.58,-.08-i*.12,.88);
-    cat.add(whisker);
+ // Whiskers
+ for(const side of [-1,1]){
+  for(let j=0;j<2;j++){
+   const curve=new THREE.QuadraticBezierCurve3(
+    new THREE.Vector3(side*.38,-.12,.83),
+    new THREE.Vector3(side*.58,-.1-j*.09,.88),
+    new THREE.Vector3(side*.75,-.08-j*.15,.83)
+   );
+   cat.add(new THREE.Mesh(new THREE.TubeGeometry(curve,10,.012,5,false),white));
   }
+ }
+
+ // Little paws
+ for(const side of [-1,1]){
+  ball(cat,side*.38,-.59,.28,.18,innerMat,1,.75,1);
+ }
+
+ // Curly tail behind the body
+ const tailCurve=new THREE.CatmullRomCurve3([
+  new THREE.Vector3(-.65,-.15,-.15),
+  new THREE.Vector3(-1.0,-.05,-.18),
+  new THREE.Vector3(-1.13,.3,-.12),
+  new THREE.Vector3(-.92,.52,-.1)
+ ]);
+ const tail=new THREE.Mesh(new THREE.TubeGeometry(tailCurve,24,.13,12,false),bodyMat);
+ cat.add(tail);
 }
+makeKitty();
 
-// Tail
-const tail = new THREE.Mesh(
-  new THREE.TorusGeometry(.38,.12,10,24,Math.PI*1.3),
-  pinkMat
-);
-tail.position.set(-.95,-.2,-.05);
-tail.rotation.z=1.2;
-cat.add(tail);
-
-// Soft shadow
-const shadow = new THREE.Mesh(
-  new THREE.CircleGeometry(.85,32),
-  new THREE.MeshBasicMaterial({color:0x527d59,transparent:true,opacity:.22})
-);
-shadow.rotation.x=-Math.PI/2;
-shadow.position.set(0,.05,1.5);
-world.add(shadow);
-
-const player = {
-  x:0, y:1.2, vx:0, vy:0,
-  radius:1, grounded:false,
-  hearts:0, alive:true
-};
-cat.position.set(player.x,player.y,1);
-
-let started=false;
+// ---------- LEVELS ----------
+let level=1;
+let unlocked=1;
+let hearts=0;
+let levelLength=0;
+let platforms=[];
+let obstacles=[];
+let collectibles=[];
+let goal;
+let levelDecor=[];
+let gameRunning=false;
 let paused=false;
 let won=false;
-let musicOn=true;
-let soundOn=true;
+
+const player={x:0,y:1,vx:0,vy:0,grounded:false};
+const shadow=new THREE.Mesh(
+ new THREE.CircleGeometry(.7,32),
+ new THREE.MeshBasicMaterial({color:0x365d47,transparent:true,opacity:.23})
+);
+shadow.rotation.x=-Math.PI/2;
+shadow.position.z=1.5;
+world.add(shadow);
+
+function clearLevel(){
+ while(world.children.length){
+  const obj=world.children[0];
+  world.remove(obj);
+ }
+ world.add(cat);
+ world.add(shadow);
+ platforms=[];
+ obstacles=[];
+ collectibles=[];
+ levelDecor=[];
+}
+
+function addPlatform(x,y,width){
+ const group=new THREE.Group();
+ rounded(group,0,-.28,0,width,.65,3.4,dirt,.16);
+ rounded(group,0,.06,0,width,.2,3.48,grass,.09);
+ rounded(group,0,.17,0,width,.12,3.5,grassTop,.05);
+ group.position.set(x,y,0);
+ world.add(group);
+ platforms.push({x,y,width});
+}
+
+function addFlower(x,y){
+ const g=new THREE.Group();
+ ball(g,0,.1,0,.13,leaf,.5,1.5,.5);
+ for(let j=0;j<5;j++){
+  const a=j*Math.PI*2/5;
+  ball(g,Math.cos(a)*.15,.3+Math.sin(a)*.04,0,.12,
+   material(['#ff8db8','#ffcf6e','#fff0e5'][j%3]),.9,.9,.7);
+ }
+ ball(g,0,.3,0,.065,material('#ffdf75'));
+ g.position.set(x,y,1.55);
+ world.add(g);
+}
+
+function addObstacle(x,y,type){
+ const g=new THREE.Group();
+ if(type===0){
+  rounded(g,0,.23,0,.7,.5,.8,material('#d58b60'),.22);
+  ball(g,0,.5,0,.38,material('#e95e77'),1.2,.65,1);
+  for(let i=0;i<3;i++)ball(g,(i-1)*.2,.58,.31,.06,white);
+ }else{
+  ball(g,0,.28,0,.46,material('#888f9a'),1.2,.75,1);
+  ball(g,-.18,.45,.25,.1,material('#aab0bb'));
+ }
+ g.position.set(x,y,1);
+ world.add(g);
+ obstacles.push({x,y,w:.85,hit:false,group:g});
+}
+
+function addHeart(x,y){
+ const g=new THREE.Group();
+ const m=material('#ff5d9d',.4);
+ ball(g,-.15,.08,0,.19,m,.9,.9,.8);
+ ball(g,.15,.08,0,.19,m,.9,.9,.8);
+ const bottom=new THREE.Mesh(new THREE.ConeGeometry(.25,.4,4),m);
+ bottom.rotation.z=Math.PI;
+ bottom.position.y=-.15;
+ g.add(bottom);
+ g.position.set(x,y,1);
+ world.add(g);
+ collectibles.push({x,y,group:g,taken:false});
+}
+
+function makeGoal(x,y){
+ const g=new THREE.Group();
+ const gateMat=material('#f2a0c0');
+ rounded(g,-.75,1.15,0,.22,2.4,.4,gateMat,.1);
+ rounded(g,.75,1.15,0,.22,2.4,.4,gateMat,.1);
+ const arch=new THREE.Mesh(new THREE.TorusGeometry(.75,.13,12,32,Math.PI),gateMat);
+ arch.rotation.z=Math.PI;
+ arch.position.y=2.35;
+ g.add(arch);
+ ball(g,0,2.2,.15,.24,material('#ffdf72'));
+ g.position.set(x,y,1);
+ world.add(g);
+ return g;
+}
+
+function buildLevel(n){
+ clearLevel();
+ hearts=0;
+ const rng=(seed)=>{
+  let t=seed+0x6D2B79F5;
+  return ()=>{t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return ((t^t>>>14)>>>0)/4294967296;}
+ };
+ const random=rng(n*827+41);
+ const count=8+Math.min(7,Math.floor(n/10));
+ let x=0;
+ let y=0;
+ const firstWidth=12;
+ addPlatform(x,y,firstWidth);
+ let right=x+firstWidth/2;
+
+ for(let i=1;i<count;i++){
+  const gap=1.5+random()*(1.1+Math.min(1.3,n/40));
+  const width=7+random()*4;
+  const rise=(random()-.45)*1.6;
+  y=THREE.MathUtils.clamp(y+rise,-.3,2.1);
+  x=right+gap+width/2;
+  addPlatform(x,y,width);
+  right=x+width/2;
+  if(random()>.35) addObstacle(x-width*.18,y+.15,random()>.5?0:1);
+  if(random()>.25) addHeart(x-width*.3,y+1.55);
+  if(random()>.55) addHeart(x+width*.1,y+1.8);
+  if(i%2===0){
+   addFlower(x-width*.38,y+.25);
+   addFlower(x+width*.35,y+.25);
+  }
+ }
+ levelLength=right+5;
+ goal=makeGoal(levelLength-.7,y+.2);
+
+ // Some extra floating heart trails
+ for(let i=0;i<3;i++){
+  const p=platforms[Math.floor(random()*platforms.length)];
+  if(p) addHeart(p.x,p.y+2.15+random()*.3);
+ }
+
+ player.x=0;
+ player.y=1.15;
+ player.vx=0;
+ player.vy=0;
+ player.grounded=false;
+ cat.position.set(player.x,player.y,1);
+ cat.rotation.z=0;
+ updateHUD();
+}
+
+// ---------- UI ----------
+const overlay=document.getElementById('overlay');
+const dialog=document.getElementById('dialog');
+
+function showHome(){
+ paused=true;
+ gameRunning=false;
+ overlay.classList.remove('hidden');
+ dialog.innerHTML=`
+ <h1>🐱 PurrBounce</h1>
+ <p>Help your little kitty explore the world!<br>Collect hearts and reach the flower gate.</p>
+ <p class="sub">Move: A / D or ← →<br>Jump: Space, W, or ↑</p>
+ <div class="buttonRow">
+ <button class="mainBtn" id="playBtn">Continue ♡</button>
+ <button class="mainBtn secondary" id="skinMenuBtn">Cat Skins</button>
+ <button class="mainBtn secondary" id="levelMenuBtn">Levels</button>
+ </div>`;
+ document.getElementById('playBtn').onclick=()=>{
+  overlay.classList.add('hidden');
+  paused=false;
+  gameRunning=true;
+  lastTime=performance.now();
+  startAudio();
+ };
+ document.getElementById('skinMenuBtn').onclick=showSkins;
+ document.getElementById('levelMenuBtn').onclick=showLevels;
+}
+
+function showPause(){
+ paused=true;
+ overlay.classList.remove('hidden');
+ dialog.innerHTML=`
+ <h1>Taking a break? ♡</h1>
+ <p>Your kitty is waiting for you!</p>
+ <div class="buttonRow">
+ <button class="mainBtn" id="resumeBtn">Resume</button>
+ <button class="mainBtn secondary" id="restartBtn">Restart Level</button>
+ <button class="mainBtn secondary" id="settingsBtn">Settings</button>
+ <button class="mainBtn secondary" id="homeBtn">Main Menu</button>
+ </div>`;
+ document.getElementById('resumeBtn').onclick=resumeGame;
+ document.getElementById('restartBtn').onclick=()=>startLevel(level);
+ document.getElementById('settingsBtn').onclick=showSettings;
+ document.getElementById('homeBtn').onclick=showHome;
+}
+
+function resumeGame(){
+ overlay.classList.add('hidden');
+ paused=false;
+ gameRunning=true;
+ lastTime=performance.now();
+ startAudio();
+}
+
+function showSettings(){
+ overlay.classList.remove('hidden');
+ dialog.innerHTML=`
+ <h1>Settings ⚙</h1>
+ <h2>Sound</h2>
+ <div class="buttonRow">
+ <button class="mainBtn secondary" id="musicToggle">${musicOn?'♫ Music ON':'♫ Music OFF'}</button>
+ <button class="mainBtn secondary" id="soundToggle">${soundOn?'🔊 Sounds ON':'🔇 Sounds OFF'}</button>
+ </div>
+ <h2>Kitty Appearance</h2>
+ <button class="mainBtn" id="skinBtn">Choose Cat Skin ♡</button>
+ <div class="buttonRow"><button class="mainBtn secondary" id="backBtn">Back</button></div>`;
+ document.getElementById('musicToggle').onclick=()=>{
+  musicOn=!musicOn;
+  document.getElementById('musicToggle').textContent=musicOn?'♫ Music ON':'♫ Music OFF';
+  if(musicOn)startAudio();else stopMusic();
+ };
+ document.getElementById('soundToggle').onclick=()=>{
+  soundOn=!soundOn;
+  document.getElementById('soundToggle').textContent=soundOn?'🔊 Sounds ON':'🔇 Sounds OFF';
+ };
+ document.getElementById('skinBtn').onclick=showSkins;
+ document.getElementById('backBtn').onclick=showPause;
+}
+
+function showSkins(){
+ overlay.classList.remove('hidden');
+ dialog.innerHTML=`
+ <h1>Kitty Closet ♡</h1>
+ <p>Choose your favorite kitty color!</p>
+ <div class="skinGrid" id="skinGrid"></div>
+ <div class="buttonRow"><button class="mainBtn secondary" id="skinBack">Back</button></div>`;
+ const grid=document.getElementById('skinGrid');
+ skins.forEach((s,i)=>{
+  const b=document.createElement('button');
+  b.className='skin'+(i===currentSkin?' selected':'');
+  b.innerHTML=`<div class="skinDot" style="background:${s.color}"></div>${s.name}`;
+  b.onclick=()=>{
+   currentSkin=i;
+   makeKitty();
+   showSkins();
+  };
+  grid.appendChild(b);
+ });
+ document.getElementById('skinBack').onclick=()=>{
+  if(gameRunning)showPause();else showHome();
+ };
+}
+
+function showLevels(){
+ overlay.classList.remove('hidden');
+ dialog.innerHTML=`
+ <h1>Choose a Level 🌷</h1>
+ <p>Complete levels to unlock more adventures!</p>
+ <div class="levelGrid" id="levelGrid"></div>
+ <div class="buttonRow"><button class="mainBtn secondary" id="levelBack">Back</button></div>`;
+ const grid=document.getElementById('levelGrid');
+ for(let i=1;i<=100;i++){
+  const b=document.createElement('button');
+  b.className='levelButton '+(i<=unlocked?'unlocked':'');
+  if(i===level)b.classList.add('current');
+  b.textContent=i;
+  b.disabled=i>unlocked;
+  b.onclick=()=>startLevel(i);
+  grid.appendChild(b);
+ }
+ document.getElementById('levelBack').onclick=()=>{
+  if(gameRunning)showPause();else showHome();
+ };
+}
+
+function showWin(){
+ won=true;
+ gameRunning=false;
+ paused=true;
+ unlocked=Math.max(unlocked,Math.min(100,level+1));
+ overlay.classList.remove('hidden');
+ if(level>=100){
+  dialog.innerHTML=`
+  <h1>100 Levels Complete! 🎉</h1>
+  <p>You and your kitty finished the whole adventure!<br>Collected hearts: <b>${hearts}</b></p>
+  <button class="mainBtn" id="replayBtn">Play Again ♡</button>`;
+  document.getElementById('replayBtn').onclick=()=>startLevel(1);
+ }else{
+  dialog.innerHTML=`
+  <h1>Meow-gical! ♡</h1>
+  <p>You completed Level ${level}!<br>Collected 💗 ${hearts} hearts.</p>
+  <div class="buttonRow">
+  <button class="mainBtn" id="nextBtn">Next Level →</button>
+  <button class="mainBtn secondary" id="levelBtn">Level Select</button>
+  </div>`;
+  document.getElementById('nextBtn').onclick=()=>startLevel(level+1);
+  document.getElementById('levelBtn').onclick=showLevels;
+ }
+ tone(784,.25);
+ setTimeout(()=>tone(988,.25),180);
+ setTimeout(()=>tone(1175,.4),360);
+}
+
+function startLevel(n){
+ level=THREE.MathUtils.clamp(n,1,100);
+ buildLevel(level);
+ won=false;
+ paused=false;
+ gameRunning=true;
+ overlay.classList.add('hidden');
+ updateHUD();
+ lastTime=performance.now();
+ startAudio();
+}
+
+function updateHUD(){
+ document.getElementById('heartCount').textContent=hearts;
+ document.getElementById('levelNum').textContent=level;
+ document.getElementById('progress').style.width=
+  Math.min(100,Math.max(0,player.x/Math.max(levelLength,1)*100))+'%';
+}
+
+// ---------- SOUND ----------
 let audio=null;
 let musicTimer=null;
 let musicStep=0;
+let musicOn=true;
+let soundOn=true;
+const notes=[523,659,784,659,587,698,880,698,523,659,784,988,880,784,659,587];
+
+function startAudio(){
+ if(!audio)audio=new(window.AudioContext||window.webkitAudioContext)();
+ if(audio.state==='suspended')audio.resume();
+ if(musicOn&&!musicTimer){
+  musicTimer=setInterval(()=>{
+   if(!gameRunning||paused||!musicOn)return;
+   const osc=audio.createOscillator();
+   const gain=audio.createGain();
+   osc.type='sine';
+   osc.frequency.value=notes[musicStep++%notes.length];
+   gain.gain.setValueAtTime(.018,audio.currentTime);
+   gain.gain.exponentialRampToValueAtTime(.001,audio.currentTime+.28);
+   osc.connect(gain);gain.connect(audio.destination);
+   osc.start();osc.stop(audio.currentTime+.3);
+  },310);
+ }
+}
+function stopMusic(){
+ if(musicTimer){clearInterval(musicTimer);musicTimer=null;}
+}
+function tone(freq,duration=.13){
+ if(!audio||!soundOn)return;
+ const osc=audio.createOscillator();
+ const gain=audio.createGain();
+ osc.type='sine';osc.frequency.value=freq;
+ gain.gain.setValueAtTime(.045,audio.currentTime);
+ gain.gain.exponentialRampToValueAtTime(.001,audio.currentTime+duration);
+ osc.connect(gain);gain.connect(audio.destination);
+ osc.start();osc.stop(audio.currentTime+duration);
+}
+document.getElementById('musicBtn').onclick=()=>{
+ musicOn=!musicOn;
+ document.getElementById('musicBtn').textContent=musicOn?'♫':'♫̸';
+ if(musicOn)startAudio();else stopMusic();
+};
+
+// ---------- CONTROLS ----------
 const keys={left:false,right:false,jump:false};
 let jumpQueued=false;
-let lastTime=0;
-let elapsed=0;
-
-const heartCount=document.getElementById('heartCount');
-const progress=document.getElementById('progress');
-const message=document.getElementById('message');
-
-function updateHUD() {
-  heartCount.textContent=player.hearts;
-  progress.style.width=Math.min(100,Math.max(0,player.x/93*100))+'%';
-  document.getElementById('levelNum').textContent='1';
+function keyDown(e){
+ if(['ArrowLeft','ArrowRight','ArrowUp','Space'].includes(e.code))e.preventDefault();
+ if(e.code==='ArrowLeft'||e.code==='KeyA')keys.left=true;
+ if(e.code==='ArrowRight'||e.code==='KeyD')keys.right=true;
+ if(['Space','ArrowUp','KeyW'].includes(e.code)){
+  if(!keys.jump)jumpQueued=true;
+  keys.jump=true;
+ }
+ if(e.code==='Escape'&&gameRunning)showPause();
 }
-
-function startAudio() {
-  if (!audio) {
-    audio = new (window.AudioContext || window.webkitAudioContext)();
-  }
-  if (audio.state === 'suspended') audio.resume();
-  if (musicOn && !musicTimer) playMusic();
+function keyUp(e){
+ if(e.code==='ArrowLeft'||e.code==='KeyA')keys.left=false;
+ if(e.code==='ArrowRight'||e.code==='KeyD')keys.right=false;
+ if(['Space','ArrowUp','KeyW'].includes(e.code))keys.jump=false;
 }
+addEventListener('keydown',keyDown);
+addEventListener('keyup',keyUp);
 
-function tone(freq,duration=.14,volume=.035,wave='sine') {
-  if (!audio || !soundOn) return;
-  const osc=audio.createOscillator();
-  const gain=audio.createGain();
-  osc.type=wave;
-  osc.frequency.value=freq;
-  gain.gain.setValueAtTime(volume,audio.currentTime);
-  gain.gain.exponentialRampToValueAtTime(.001,audio.currentTime+duration);
-  osc.connect(gain);
-  gain.connect(audio.destination);
-  osc.start();
-  osc.stop(audio.currentTime+duration);
-}
-
-const melody=[523,659,784,659,587,698,880,698,523,659,784,1046,880,784,659,587];
-function playMusic() {
-  if (!audio || !musicOn) return;
-  if (musicTimer) clearInterval(musicTimer);
-  musicTimer=setInterval(()=>{
-    if (!started || paused || !musicOn) return;
-    const f=melody[musicStep%melody.length];
-    const osc=audio.createOscillator();
-    const gain=audio.createGain();
-    osc.type='sine';
-    osc.frequency.value=f;
-    gain.gain.setValueAtTime(.018,audio.currentTime);
-    gain.gain.exponentialRampToValueAtTime(.001,audio.currentTime+.28);
-    osc.connect(gain);
-    gain.connect(audio.destination);
-    osc.start();
-    osc.stop(audio.currentTime+.3);
-    musicStep++;
-  },300);
-}
-
-function setMusic(on) {
-  musicOn=on;
-  document.getElementById('musicBtn').textContent=on?'♫ Music ON':'♫ Music OFF';
-  if (!on && musicTimer) {
-    clearInterval(musicTimer);
-    musicTimer=null;
-  } else if (on && audio && started) playMusic();
-}
-
-function resetGame() {
-  player.x=0;
-  player.y=1.2;
-  player.vx=0;
-  player.vy=0;
-  player.grounded=false;
-  player.hearts=0;
-  player.alive=true;
-  won=false;
-  cat.position.set(0,1.2,1);
-  cat.rotation.z=0;
-  collectibles.forEach(c=>{
-    c.taken=false;
-    c.group.visible=true;
-  });
-  obstacles.forEach(o=>o.hit=false);
-  updateHUD();
-}
-
-function beginGame() {
-  resetGame();
-  started=true;
-  paused=false;
-  message.classList.add('hidden');
-  startAudio();
-  lastTime=performance.now();
-}
-
-document.getElementById('startBtn').addEventListener('click',()=>{
-  if (won) resetGame();
-  beginGame();
-});
-
-document.getElementById('pauseBtn').addEventListener('click',()=>{
-  if (!started) return;
-  paused=!paused;
-  document.getElementById('pauseBtn').textContent=paused?'▶':'Ⅱ';
-  if (paused) {
-    message.innerHTML='<h1>Taking a break? ♡</h1><p>Your kitty is waiting!</p><button class="mainbtn" id="resumeBtn">Continue</button>';
-    message.classList.remove('hidden');
-    document.getElementById('resumeBtn').onclick=()=>{
-      message.classList.add('hidden');
-      paused=false;
-      document.getElementById('pauseBtn').textContent='Ⅱ';
-      lastTime=performance.now();
-    };
-  } else {
-    message.classList.add('hidden');
-  }
-});
-
-document.getElementById('musicBtn').onclick=()=>{
-  setMusic(!musicOn);
-  if (musicOn) startAudio();
-};
-document.getElementById('soundBtn').onclick=()=>{
-  soundOn=!soundOn;
-  document.getElementById('soundBtn').textContent=soundOn?'🔊 Sound':'🔇 Sound';
-  if (soundOn) tone(660);
-};
-
-// Keyboard controls
-window.addEventListener('keydown',e=>{
-  if (['ArrowLeft','ArrowRight','ArrowUp','Space'].includes(e.code)) e.preventDefault();
-  if (e.code==='ArrowLeft'||e.code==='KeyA') keys.left=true;
-  if (e.code==='ArrowRight'||e.code==='KeyD') keys.right=true;
-  if (e.code==='Space'||e.code==='ArrowUp'||e.code==='KeyW') {
-    if (!keys.jump) jumpQueued=true;
-    keys.jump=true;
-  }
-  if (e.code==='Escape' && started) document.getElementById('pauseBtn').click();
-});
-window.addEventListener('keyup',e=>{
-  if (e.code==='ArrowLeft'||e.code==='KeyA') keys.left=false;
-  if (e.code==='ArrowRight'||e.code==='KeyD') keys.right=false;
-  if (e.code==='Space'||e.code==='ArrowUp'||e.code==='KeyW') keys.jump=false;
-});
-
-// Mobile controls
-function bindHold(id,key) {
-  const el=document.getElementById(id);
-  el.addEventListener('pointerdown',e=>{
-    e.preventDefault();
-    keys[key]=true;
-    if (key==='jump') jumpQueued=true;
-    el.setPointerCapture(e.pointerId);
-  });
-  const release=e=>{ keys[key]=false; };
-  el.addEventListener('pointerup',release);
-  el.addEventListener('pointercancel',release);
-  el.addEventListener('lostpointercapture',release);
+function bindHold(id,key){
+ const el=document.getElementById(id);
+ el.addEventListener('pointerdown',e=>{
+  e.preventDefault();
+  keys[key]=true;
+  if(key==='jump')jumpQueued=true;
+  el.setPointerCapture(e.pointerId);
+ });
+ const release=()=>keys[key]=false;
+ el.addEventListener('pointerup',release);
+ el.addEventListener('pointercancel',release);
+ el.addEventListener('lostpointercapture',release);
 }
 bindHold('leftBtn','left');
 bindHold('rightBtn','right');
 bindHold('jumpBtn','jump');
 
-function finishGame() {
-  won=true;
-  started=false;
-  if (musicTimer) {clearInterval(musicTimer);musicTimer=null;}
-  message.innerHTML=`
-    <h1>Meow-gical! ♡</h1>
-    <p>Your kitty reached the flower gate!<br>
-    You collected <b>${player.hearts}</b> hearts. Great job!</p>
-    <button class="mainbtn" id="againBtn">Play Again ♡</button>`;
-  message.classList.remove('hidden');
-  document.getElementById('againBtn').onclick=beginGame;
-  tone(784,.25);
-  setTimeout(()=>tone(988,.25),180);
-  setTimeout(()=>tone(1175,.4),360);
-}
+document.getElementById('pauseBtn').onclick=()=>{
+ if(gameRunning)showPause();
+ else if(paused&&!won)resumeGame();
+};
+document.getElementById('playBtn').onclick=()=>startLevel(1);
+document.getElementById('skinMenuBtn').onclick=showSkins;
+document.getElementById('levelMenuBtn').onclick=showLevels;
 
-function update(dt) {
-  if (!started || paused || won) return;
+// ---------- GAME PHYSICS ----------
+let lastTime=performance.now();
+let elapsed=0;
 
-  elapsed+=dt;
-  const acceleration=23;
-  const maxSpeed=8.5;
+function update(dt){
+ if(!gameRunning||paused||won)return;
+ elapsed+=dt;
 
-  if (keys.left) player.vx-=acceleration*dt;
-  if (keys.right) player.vx+=acceleration*dt;
-  if (!keys.left && !keys.right) player.vx*=Math.pow(.001,dt);
-  player.vx=THREE.MathUtils.clamp(player.vx,-maxSpeed,maxSpeed);
+ const oldY=player.y;
+ const accel=22;
+ if(keys.left)player.vx-=accel*dt;
+ if(keys.right)player.vx+=accel*dt;
+ if(!keys.left&&!keys.right)player.vx*=Math.pow(.001,dt);
+ player.vx=THREE.MathUtils.clamp(player.vx,-8.5,8.5);
 
-  if (jumpQueued && player.grounded) {
-    player.vy=10.8;
-    player.grounded=false;
-    tone(520,.12,.04);
-  }
-  jumpQueued=false;
-
-  player.vy-=25*dt;
-  const oldY=player.y;
-  player.x+=player.vx*dt;
-  player.y+=player.vy*dt;
-
-  // Land on platform tops, but only while falling.
+ if(jumpQueued&&player.grounded){
+  player.vy=10.7;
   player.grounded=false;
-  for (const p of platforms) {
-    const left=p[0]-p[2]/2;
-    const right=p[0]+p[2]/2;
-    const top=p[1]+.25;
-    const overlaps=player.x+.72>left && player.x-.72<right;
-    if (overlaps && player.vy<=0 &&
-        oldY-player.radius*.82>=top-.05 &&
-        player.y-player.radius*.82<=top+.1) {
-      player.y=top+player.radius*.82;
-      player.vy=0;
-      player.grounded=true;
-    }
+  tone(540);
+ }
+ jumpQueued=false;
+
+ player.vy-=24*dt;
+ player.x+=player.vx*dt;
+ player.y+=player.vy*dt;
+
+ player.grounded=false;
+ for(const p of platforms){
+  const left=p.x-p.width/2;
+  const right=p.x+p.width/2;
+  const top=p.y+.23;
+  const overlaps=player.x+.55>left&&player.x-.55<right;
+  if(overlaps&&player.vy<=0&&
+    oldY-.7>=top-.08&&player.y-.7<=top+.08){
+   player.y=top+.7;
+   player.vy=0;
+   player.grounded=true;
   }
+ }
 
-  // Obstacles slow the kitty down and bounce it slightly.
-  for (const o of obstacles) {
-    if (!o.hit && Math.abs(player.x-o.x)<.85 &&
-        Math.abs(player.y-(o.y+.6))<1.05) {
-      o.hit=true;
-      player.vx=-Math.sign(player.vx||1)*3.2;
-      player.vy=Math.max(player.vy,4);
-      tone(180,.2,.05,'triangle');
-      setTimeout(()=>{o.hit=false;},900);
-    }
+ // Obstacles bump the kitty rather than instantly ending the game.
+ for(const o of obstacles){
+  if(!o.hit&&Math.abs(player.x-o.x)<.8&&Math.abs(player.y-(o.y+.65))<.95){
+   o.hit=true;
+   player.vx=-Math.sign(player.vx||1)*2.7;
+   player.vy=Math.max(player.vy,3.5);
+   tone(190,.2);
+   setTimeout(()=>o.hit=false,700);
   }
+ }
 
-  // Collect hearts.
-  for (const c of collectibles) {
-    if (!c.taken &&
-        Math.hypot(player.x-c.x,player.y-c.y)<1.35) {
-      c.taken=true;
-      c.group.visible=false;
-      player.hearts++;
-      updateHUD();
-      tone(880,.15,.05);
-    }
+ // Collect hearts.
+ for(const c of collectibles){
+  if(!c.taken&&Math.hypot(player.x-c.x,player.y-c.y)<1.15){
+   c.taken=true;
+   c.group.visible=false;
+   hearts++;
+   tone(880);
   }
-
-  // Falling below the world resets the kitty to the start.
-  if (player.y < -7) {
-    player.x=0;
-    player.y=2;
-    player.vx=0;
-    player.vy=0;
-    player.grounded=false;
-    tone(220,.25,.04);
+  if(!c.taken){
+   c.group.position.y=c.y+Math.sin(elapsed*3+c.x)*.12;
+   c.group.rotation.y=Math.sin(elapsed*2+c.x)*.2;
   }
+ }
 
-  // Keep the player within the level.
-  player.x=Math.max(-3,Math.min(player.x,96));
+ // Falling into a gap sends the kitty back to the start of the level.
+ if(player.y < -7){
+  player.x=0;player.y=1.3;player.vx=0;player.vy=0;
+  player.grounded=false;
+  tone(220,.2);
+ }
 
-  // Roll with movement.
-  cat.position.set(player.x,player.y,1);
-  if (player.grounded) {
-    cat.rotation.z-=player.vx*dt*.8;
-  }
-  tail.rotation.z=1.2+Math.sin(elapsed*5)*.15;
+ player.x=Math.max(-3,Math.min(player.x,levelLength+2));
+ cat.position.set(player.x,player.y,1);
+ if(player.grounded)cat.rotation.z-=player.vx*dt*.75;
+ else cat.rotation.z-=player.vx*dt*.2;
 
-  // Floating collectibles.
-  collectibles.forEach(c=>{
-    if (!c.taken) {
-      c.group.position.y=c.y+Math.sin(elapsed*3+c.x)*.12;
-      c.group.rotation.y=Math.sin(elapsed*2+c.x)*.25;
-    }
-  });
+ shadow.position.x=player.x;
+ shadow.position.y=.05;
+ shadow.scale.setScalar(Math.max(.4,1-Math.max(0,player.y-1)*.08));
 
-  // Camera follows the kitty horizontally.
-  const targetX=player.x+2;
-  camera.position.x += (targetX-camera.position.x)*Math.min(1,dt*3.5);
-  camera.lookAt(camera.position.x,3,0);
+ camera.position.x+=(player.x+2-camera.position.x)*Math.min(1,dt*3.5);
+ camera.lookAt(camera.position.x,3,0);
 
-  // Shadow follows and gets smaller while airborne.
-  shadow.position.x=player.x;
-  shadow.position.y=.05;
-  shadow.scale.setScalar(Math.max(.45,1-(player.y-1.2)*.08));
-
-  updateHUD();
-
-  if (player.x>91) finishGame();
+ updateHUD();
+ if(player.x>levelLength-1.2)showWin();
 }
 
-function animate(time) {
-  requestAnimationFrame(animate);
-  const dt=Math.min((time-lastTime)/1000||0,0.035);
-  lastTime=time;
-  update(dt);
-  renderer.render(scene,camera);
+// ---------- RENDER ----------
+function animate(time){
+ requestAnimationFrame(animate);
+ const dt=Math.min((time-lastTime)/1000||0,.035);
+ lastTime=time;
+ update(dt);
+ renderer.render(scene,camera);
 }
 requestAnimationFrame(animate);
 
-window.addEventListener('resize',()=>{
-  const aspect=window.innerWidth/window.innerHeight;
-  const height=6.2;
-  camera.left=-height*aspect;
-  camera.right=height*aspect;
-  camera.top=height;
-  camera.bottom=-height;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth,window.innerHeight);
+addEventListener('resize',()=>{
+ const aspect=innerWidth/innerHeight;
+ camera.left=-5.65*aspect;
+ camera.right=5.65*aspect;
+ camera.top=5.65;
+ camera.bottom=-5.65;
+ camera.updateProjectionMatrix();
+ renderer.setSize(innerWidth,innerHeight);
 });
+
+buildLevel(1);
+showHome();
 </script>
 </body>
 </html>
