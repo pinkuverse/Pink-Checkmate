@@ -4,812 +4,388 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PurrBounce ♡</title>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&display=swap');
+<title>Pink Checkmate ♡</title>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/1.4.0/chess.min.js"></script>
+
+<style>
 *{box-sizing:border-box}
-body{margin:0;overflow:hidden;font-family:'Baloo 2',sans-serif;background:#9bd7e9;color:#75445f}
-canvas{display:block}
-button{font-family:inherit;cursor:pointer}
-#hud{position:fixed;inset:0;padding:15px;pointer-events:none}
-.top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
-.panel{background:#fffF;border:2px solid #fff;border-radius:20px;padding:8px 14px;box-shadow:0 5px 15px #70425a25;backdrop-filter:blur(8px)}
-.logo{font-size:25px;font-weight:800;line-height:1;color:#e66e9e}
-.sub{font-size:12px;color:#96677e}
-#stats{display:flex;gap:8px;font-weight:800}
-#progressWrap{height:9px;width:min(180px,30vw);background:#f2c4d6;border-radius:20px;margin-top:5px;overflow:hidden}
-#progress{height:100%;width:0;background:linear-gradient(90deg,#f56fa6,#ffbd65);border-radius:20px}
-#topButtons{display:flex;gap:7px;pointer-events:auto}
-.uiBtn{border:0;background:#fff;color:#a6537a;border-radius:14px;padding:8px 12px;font-size:15px;font-weight:800;box-shadow:0 4px 10px #70425a20}
-.uiBtn:active,.mainBtn:active{transform:translateY(2px)}
-#overlay{position:fixed;inset:0;background:#28404b55;display:flex;align-items:center;justify-content:center;padding:16px;z-index:5;backdrop-filter:blur(5px)}
-#dialog{width:min(440px,95vw);max-height:88vh;overflow:auto;text-align:center;background:#fffafc;border:4px solid white;border-radius:30px;padding:25px 22px;box-shadow:0 15px 50px #57334c44}
-#dialog h1{font-size:36px;color:#e56e9e;margin:0 0 5px;line-height:1.1}
-#dialog h2{color:#df79a1;margin:5px 0 12px}
-#dialog p{margin:7px 0 16px;line-height:1.4}
-.mainBtn{border:0;background:linear-gradient(135deg,#ff8db9,#e85e99);color:white;font-size:19px;font-weight:800;padding:10px 28px;border-radius:17px;box-shadow:0 5px 0 #c64d83;margin:5px}
-.secondary{background:#f8e5ee;color:#a45b7c;box-shadow:0 4px 0 #e6c4d4}
-.buttonRow{display:flex;justify-content:center;flex-wrap:wrap;gap:5px}
-.skinGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:15px 0}
-.skin{border:3px solid #f2dce6;border-radius:17px;background:white;padding:10px 4px;color:#80516a;font-weight:700}
-.skin.selected{border-color:#ec79a6;background:#fff0f6}
-.skinDot{width:37px;height:37px;border-radius:50%;margin:0 auto 5px;border:3px solid #ffffff;box-shadow:0 2px 7px #0002}
-.levelGrid{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin:14px 0}
-.levelButton{border:0;border-radius:12px;padding:9px 0;background:#f7e6ee;color:#9d5c7c;font-weight:800}
-.levelButton.unlocked{background:#ffe0ed;color:#d45c91}
-.levelButton.current{background:#e879a6;color:white}
-.levelButton:disabled{opacity:.35;cursor:not-allowed}
-#touchControls{position:fixed;bottom:17px;left:0;right:0;display:flex;justify-content:space-between;padding:0 20px;pointer-events:none}
-.touchGroup{display:flex;gap:10px}
-.touch{pointer-events:auto;width:59px;height:59px;border:3px solid white;border-radius:19px;background:#ffffffd9;color:#a84f78;font-size:25px;font-weight:800;box-shadow:0 5px 12px #57334c25;touch-action:none}
-.hidden{display:none!important}
-@media(max-width:600px){
- .logo{font-size:20px}.panel{padding:7px 10px}
- .uiBtn{padding:7px 9px;font-size:12px}
- #stats{font-size:13px}.sub{font-size:10px}
- .touch{width:54px;height:54px}
+body{
+ margin:0;background:#fff1f7;color:#925b78;
+ font-family:Arial,sans-serif;padding:20px;
 }
+header{text-align:center;padding:20px}
+h1{color:#d77ca5;font-size:35px}
+main{max-width:650px;margin:auto}
+.card{
+ background:white;border:2px solid #f5d4e4;
+ border-radius:20px;padding:20px;margin-bottom:20px;
+ box-shadow:0 5px 15px #e9bcd033;
+}
+input,select,button{
+ width:100%;padding:12px;margin:7px 0;
+ border:1px solid #edc8da;border-radius:12px;
+ font-size:15px;
+}
+button{background:#e99abd;color:white;border:0;
+ font-weight:bold;cursor:pointer}
+button:disabled{opacity:.5;cursor:not-allowed}
+.board{
+ display:grid;grid-template-columns:repeat(8,1fr);
+ width:100%;aspect-ratio:1;border:5px solid #e6a8c4;
+}
+.square{
+ aspect-ratio:1;border:0;border-radius:0;
+ padding:0;display:flex;align-items:center;
+ justify-content:center;position:relative;
+ font-size:clamp(22px,8vw,55px);
+}
+.light{background:#ffeaf3}
+.dark{background:#e6a8c4}
+.selected{background:#ffce69}
+.target:after{
+ content:"";width:22%;height:22%;
+ background:#bd7397;border-radius:50%;
+ position:absolute;
+}
+.players{display:flex;justify-content:space-between;
+ text-align:center;gap:10px}
+.players div{background:#fff0f6;padding:10px;
+ border-radius:12px;flex:1}
+.score{display:flex;justify-content:space-around;
+ text-align:center}
+.score strong{font-size:30px;color:#d77ca5}
+.match{border-bottom:1px solid #f4dce7;padding:12px 0}
+small{display:block;color:#b88ba1}
+footer{text-align:center;padding:20px}
 </style>
 </head>
+
 <body>
+<header>
+<h1>♡ Pink Checkmate ♡</h1>
+<p>Your cozy little chess club 🎀</p>
+</header>
 
-<div id="hud">
- <div class="top">
-  <div class="panel">
-   <div class="logo">🐾 PurrBounce</div>
-   <div class="sub">A little kitty adventure ♡</div>
-  </div>
-  <div id="stats">
-   <div class="panel">💗 <span id="heartCount">0</span><div class="sub">Hearts</div></div>
-   <div class="panel">🌷 Level <span id="levelNum">1</span>
-    <div id="progressWrap"><div id="progress"></div></div>
-   </div>
-  </div>
-  <div id="topButtons">
-   <button class="uiBtn" id="musicBtn">♫</button>
-   <button class="uiBtn" id="pauseBtn">Ⅱ</button>
-  </div>
- </div>
+<main>
+
+<section class="card">
+<h2>Game Setup</h2>
+<input id="myName" placeholder="Your name">
+<input id="opName" placeholder="Opponent's name">
+
+<select id="mode">
+<option value="60">Bullet - 1 minute</option>
+<option value="180" selected>Blitz - 3 minutes</option>
+<option value="600">Rapid - 10 minutes</option>
+</select>
+
+<button onclick="startGame()">Start Game ♡</button>
+</section>
+
+<section class="card">
+<div class="players">
+<div>
+<b id="opLabel">Opponent</b>
+<h2 id="blackClock">03:00</h2>
+</div>
+<div>
+<b id="myLabel">You</b>
+<h2 id="whiteClock">03:00</h2>
+</div>
 </div>
 
-<div id="overlay">
- <div id="dialog">
-  <h1>🐱 PurrBounce</h1>
-  <p>Help your little kitty explore the world!<br>Collect hearts and reach the flower gate.</p>
-  <p class="sub">Move: A / D or ← →<br>Jump: Space, W, or ↑</p>
-  <div class="buttonRow">
-   <button class="mainBtn" id="playBtn">Let's Play! ♡</button>
-   <button class="mainBtn secondary" id="skinMenuBtn">Cat Skins</button>
-   <button class="mainBtn secondary" id="levelMenuBtn">Levels</button>
-  </div>
- </div>
+<div id="board" class="board"></div>
+<p id="status" style="text-align:center">Ready to play? ♡</p>
+
+<button onclick="resign()">Resign</button>
+<button onclick="resetGame()" style="background:#d6a2bb">
+New Game
+</button>
+</section>
+
+<section class="card">
+<h2>♡ Current Session</h2>
+<div class="score">
+<div><strong id="wins">0</strong><br>Wins</div>
+<div><strong id="losses">0</strong><br>Losses</div>
+<div><strong id="draws">0</strong><br>Draws</div>
 </div>
+<h2 id="points" style="text-align:center">0 points</h2>
 
-<div id="touchControls">
- <div class="touchGroup">
-  <button class="touch" id="leftBtn">◀</button>
-  <button class="touch" id="rightBtn">▶</button>
- </div>
- <button class="touch" id="jumpBtn">↑</button>
-</div>
+<h3>Match History</h3>
+<div id="matches">No games yet ♡</div>
 
-<script type="importmap">
-{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}
-</script>
+<button onclick="endSession()">End Session ♡</button>
+</section>
 
-<script type="module">
-import * as THREE from 'three';
-import {RoundedBoxGeometry} from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/geometries/RoundedBoxGeometry.js';
+<section class="card">
+<h2>Previous Sessions</h2>
+<div id="archives">No previous sessions yet.</div>
+</section>
 
-// ---------- SCENE ----------
-const scene=new THREE.Scene();
-scene.background=new THREE.Color('#a9e0ed');
-scene.fog=new THREE.Fog('#a9e0ed',35,100);
+<footer>Made with ♡ for chess lovers</footer>
+</main>
 
-const camera=new THREE.OrthographicCamera(-10,10,5.65,-5.65,.1,150);
-camera.position.set(0,4,25);
-camera.lookAt(0,3,0);
+<script>
+const PIECES={
+ w:{k:"♔",q:"♕",r:"♖",b:"♗",n:"♘",p:"♙"},
+ b:{k:"♚",q:"♛",r:"♜",b:"♝",n:"♞",p:"♟"}
+};
 
-const renderer=new THREE.WebGLRenderer({antialias:true});
-renderer.setSize(innerWidth,innerHeight);
-renderer.setPixelRatio(Math.min(devicePixelRatio,2));
-renderer.shadowMap.enabled=true;
-renderer.shadowMap.type=THREE.PCFSoftShadowMap;
-renderer.outputColorSpace=THREE.SRGBColorSpace;
-renderer.toneMapping=THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure=1.25;
-document.body.appendChild(renderer.domElement);
+let game=new Chess();
+let selected=null;
+let legalTargets=[];
+let running=false;
+let timer=null;
+let times={w:180,b:180};
+let opponent="";
+let player="";
+let mode="Blitz";
+let recorded=false;
 
-scene.add(new THREE.HemisphereLight(0xffffff,0x719c73,2.1));
-const sun=new THREE.DirectionalLight(0xfff2dc,2.6);
-sun.position.set(-6,12,12);
-sun.castShadow=true;
-sun.shadow.mapSize.set(2048,2048);
-sun.shadow.camera.left=-40;
-sun.shadow.camera.right=40;
-sun.shadow.camera.top=20;
-sun.shadow.camera.bottom=-20;
-scene.add(sun);
-
-const world=new THREE.Group();
-scene.add(world);
-
-const material=(color,roughness=.8)=>new THREE.MeshStandardMaterial({color,roughness});
-const grass=material('#55b96d');
-const grassTop=material('#8cdb78');
-const dirt=material('#b87855');
-const dirtSide=material('#986044');
-const white=material('#fff8f1');
-const dark=material('#493444');
-const pink=material('#f58bb4');
-const blush=material('#ffb2c9');
-const leaf=material('#43a967');
-
-function rounded(parent,x,y,z,sx,sy,sz,mat,r=.15){
- const mesh=new THREE.Mesh(new RoundedBoxGeometry(sx,sy,sz,4,r),mat);
- mesh.position.set(x,y,z);
- mesh.castShadow=true;
- mesh.receiveShadow=true;
- parent.add(mesh);
- return mesh;
-}
-function ball(parent,x,y,z,r,mat,sx=1,sy=1,sz=1){
- const mesh=new THREE.Mesh(new THREE.SphereGeometry(r,32,24),mat);
- mesh.position.set(x,y,z);
- mesh.scale.set(sx,sy,sz);
- mesh.castShadow=true;
- mesh.receiveShadow=true;
- parent.add(mesh);
- return mesh;
-}
-
-// ---------- BACKGROUND ----------
-const skyHills=[];
-for(let i=0;i<16;i++){
- const h=ball(scene,i*8-20,-1.6+(i%3)*.35,-12,5,
- material(i%2?'#73c995':'#83d3a0'),1.7,.7,.2);
- h.castShadow=false;
- skyHills.push(h);
-}
-for(let i=0;i<12;i++){
- const c=new THREE.Group();
- ball(c,0,0,0,.8,white,1.5,.65,.5);
- ball(c,-.7,-.1,0,.6,white,1,.8,.6);
- ball(c,.7,-.05,0,.6,white,1,.8,.6);
- c.position.set(i*12-5,7+(i%3),-9);
- scene.add(c);
-}
-for(let i=0;i<16;i++){
- const x=i*7-5;
- const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.13,.22,2,10),material('#986348'));
- trunk.position.set(x,1,-7);
- scene.add(trunk);
- ball(scene,x,2.2,-7,1.2,material(i%2?'#3eaa72':'#59bd78'),1.15,1.1,.75);
- for(let j=0;j<3;j++)ball(scene,x+(j-1)*.5,2.5,-6.4,.15,material('#ffb1c9'));
-}
-
-// ---------- KITTY ----------
-const cat=new THREE.Group();
-world.add(cat);
-let currentSkin=0;
-const skins=[
- {name:'Strawberry',color:'#f58bb4',inner:'#ffd1df',blush:'#ffabc7'},
- {name:'Vanilla',color:'#f5d9a0',inner:'#fff0cf',blush:'#f6b7a5'},
- {name:'Mochi',color:'#fff0e5',inner:'#f8c4d8',blush:'#f4a7bd'},
- {name:'Blueberry',color:'#8db9ed',inner:'#d7e9ff',blush:'#e2a9c9'},
- {name:'Lavender',color:'#b59be5',inner:'#e6d7ff',blush:'#e7a9cf'},
- {name:'Chocolate',color:'#a97765',inner:'#e9c0a6',blush:'#eaa9a1'}
-];
-let catMaterials={};
-
-function makeKitty(){
- cat.clear();
- const skin=skins[currentSkin];
- const bodyMat=material(skin.color,.55);
- const innerMat=material(skin.inner,.7);
- const blushMat=material(skin.blush,.7);
- catMaterials={bodyMat,innerMat};
-
- // Rounded fluffy body
- ball(cat,0,0,0,.79,bodyMat,1.05,.96,.88);
- // Cheeks and muzzle
- ball(cat,-.28,-.17,.69,.22,blushMat,1,.8,.45);
- ball(cat,.28,-.17,.69,.22,blushMat,1,.8,.45);
- ball(cat,0,-.14,.82,.23,innerMat,1,.72,.48);
-
- // Ears: rounded cones, with inner ears
- for(const side of [-1,1]){
-  const ear=new THREE.Mesh(new THREE.SphereGeometry(.32,24,18),bodyMat);
-  ear.scale.set(.72,1.3,.48);
-  ear.position.set(side*.48,.62,.05);
-  ear.rotation.z=-side*.3;
-  cat.add(ear);
-  const inside=new THREE.Mesh(new THREE.SphereGeometry(.19,24,18),innerMat);
-  inside.scale.set(.7,1.15,.3);
-  inside.position.set(side*.48,.66,.28);
-  inside.rotation.z=-side*.3;
-  cat.add(inside);
- }
-
- // Big expressive eyes
- for(const side of [-1,1]){
-  ball(cat,side*.27,.12,.76,.115,dark, .8,1.25,.45);
-  ball(cat,side*.29,.17,.81,.035,white,.8,1,.4);
-  ball(cat,side*.27,-.12,.77,.09,blushMat,1,.65,.4);
- }
-
- // Tiny nose
- ball(cat,0,-.035,.99,.065,material('#d95e8b'),1,.75,.5);
-
- // Smile curves
- for(const side of [-1,1]){
-  const curve=new THREE.QuadraticBezierCurve3(
-   new THREE.Vector3(0,-.13,1),
-   new THREE.Vector3(side*.09,-.24,1),
-   new THREE.Vector3(side*.18,-.17,.97)
-  );
-  const line=new THREE.Mesh(
-   new THREE.TubeGeometry(curve,12,.018,6,false),
-   dark
-  );
-  cat.add(line);
- }
-
- // Whiskers
- for(const side of [-1,1]){
-  for(let j=0;j<2;j++){
-   const curve=new THREE.QuadraticBezierCurve3(
-    new THREE.Vector3(side*.38,-.12,.83),
-    new THREE.Vector3(side*.58,-.1-j*.09,.88),
-    new THREE.Vector3(side*.75,-.08-j*.15,.83)
-   );
-   cat.add(new THREE.Mesh(new THREE.TubeGeometry(curve,10,.012,5,false),white));
-  }
- }
-
- // Little paws
- for(const side of [-1,1]){
-  ball(cat,side*.38,-.59,.28,.18,innerMat,1,.75,1);
- }
-
- // Curly tail behind the body
- const tailCurve=new THREE.CatmullRomCurve3([
-  new THREE.Vector3(-.65,-.15,-.15),
-  new THREE.Vector3(-1.0,-.05,-.18),
-  new THREE.Vector3(-1.13,.3,-.12),
-  new THREE.Vector3(-.92,.52,-.1)
- ]);
- const tail=new THREE.Mesh(new THREE.TubeGeometry(tailCurve,24,.13,12,false),bodyMat);
- cat.add(tail);
-}
-makeKitty();
-
-// ---------- LEVELS ----------
-let level=1;
-let unlocked=1;
-let hearts=0;
-let levelLength=0;
-let platforms=[];
-let obstacles=[];
-let collectibles=[];
-let goal;
-let levelDecor=[];
-let gameRunning=false;
-let paused=false;
-let won=false;
-
-const player={x:0,y:1,vx:0,vy:0,grounded:false};
-const shadow=new THREE.Mesh(
- new THREE.CircleGeometry(.7,32),
- new THREE.MeshBasicMaterial({color:0x365d47,transparent:true,opacity:.23})
+let session=JSON.parse(
+ localStorage.getItem("pinkSession") ||
+ '{"games":[],"points":0}'
 );
-shadow.rotation.x=-Math.PI/2;
-shadow.position.z=1.5;
-world.add(shadow);
+let archives=JSON.parse(
+ localStorage.getItem("pinkArchives") || "[]"
+);
 
-function clearLevel(){
- while(world.children.length){
-  const obj=world.children[0];
-  world.remove(obj);
- }
- world.add(cat);
- world.add(shadow);
- platforms=[];
- obstacles=[];
- collectibles=[];
- levelDecor=[];
+function save(){
+ localStorage.setItem("pinkSession",JSON.stringify(session));
+ localStorage.setItem("pinkArchives",JSON.stringify(archives));
 }
 
-function addPlatform(x,y,width){
- const group=new THREE.Group();
- rounded(group,0,-.28,0,width,.65,3.4,dirt,.16);
- rounded(group,0,.06,0,width,.2,3.48,grass,.09);
- rounded(group,0,.17,0,width,.12,3.5,grassTop,.05);
- group.position.set(x,y,0);
- world.add(group);
- platforms.push({x,y,width});
+function format(n){
+ return String(Math.floor(n/60)).padStart(2,"0")+":"+
+ String(n%60).padStart(2,"0");
 }
 
-function addFlower(x,y){
- const g=new THREE.Group();
- ball(g,0,.1,0,.13,leaf,.5,1.5,.5);
- for(let j=0;j<5;j++){
-  const a=j*Math.PI*2/5;
-  ball(g,Math.cos(a)*.15,.3+Math.sin(a)*.04,0,.12,
-   material(['#ff8db8','#ffcf6e','#fff0e5'][j%3]),.9,.9,.7);
- }
- ball(g,0,.3,0,.065,material('#ffdf75'));
- g.position.set(x,y,1.55);
- world.add(g);
-}
+function draw(){
+ const board=document.getElementById("board");
+ board.innerHTML="";
+ const position=game.board();
 
-function addObstacle(x,y,type){
- const g=new THREE.Group();
- if(type===0){
-  rounded(g,0,.23,0,.7,.5,.8,material('#d58b60'),.22);
-  ball(g,0,.5,0,.38,material('#e95e77'),1.2,.65,1);
-  for(let i=0;i<3;i++)ball(g,(i-1)*.2,.58,.31,.06,white);
- }else{
-  ball(g,0,.28,0,.46,material('#888f9a'),1.2,.75,1);
-  ball(g,-.18,.45,.25,.1,material('#aab0bb'));
- }
- g.position.set(x,y,1);
- world.add(g);
- obstacles.push({x,y,w:.85,hit:false,group:g});
-}
+ position.forEach((row,r)=>{
+  row.forEach((piece,c)=>{
+   const square="abcdefgh"[c]+(8-r);
+   const el=document.createElement("button");
 
-function addHeart(x,y){
- const g=new THREE.Group();
- const m=material('#ff5d9d',.4);
- ball(g,-.15,.08,0,.19,m,.9,.9,.8);
- ball(g,.15,.08,0,.19,m,.9,.9,.8);
- const bottom=new THREE.Mesh(new THREE.ConeGeometry(.25,.4,4),m);
- bottom.rotation.z=Math.PI;
- bottom.position.y=-.15;
- g.add(bottom);
- g.position.set(x,y,1);
- world.add(g);
- collectibles.push({x,y,group:g,taken:false});
-}
+   el.className="square "+
+    ((r+c)%2===0?"light":"dark")+
+    (selected===square?" selected":"")+
+    (legalTargets.includes(square)?" target":"");
 
-function makeGoal(x,y){
- const g=new THREE.Group();
- const gateMat=material('#f2a0c0');
- rounded(g,-.75,1.15,0,.22,2.4,.4,gateMat,.1);
- rounded(g,.75,1.15,0,.22,2.4,.4,gateMat,.1);
- const arch=new THREE.Mesh(new THREE.TorusGeometry(.75,.13,12,32,Math.PI),gateMat);
- arch.rotation.z=Math.PI;
- arch.position.y=2.35;
- g.add(arch);
- ball(g,0,2.2,.15,.24,material('#ffdf72'));
- g.position.set(x,y,1);
- world.add(g);
- return g;
-}
-
-function buildLevel(n){
- clearLevel();
- hearts=0;
- const rng=(seed)=>{
-  let t=seed+0x6D2B79F5;
-  return ()=>{t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return ((t^t>>>14)>>>0)/4294967296;}
- };
- const random=rng(n*827+41);
- const count=8+Math.min(7,Math.floor(n/10));
- let x=0;
- let y=0;
- const firstWidth=12;
- addPlatform(x,y,firstWidth);
- let right=x+firstWidth/2;
-
- for(let i=1;i<count;i++){
-  const gap=1.5+random()*(1.1+Math.min(1.3,n/40));
-  const width=7+random()*4;
-  const rise=(random()-.45)*1.6;
-  y=THREE.MathUtils.clamp(y+rise,-.3,2.1);
-  x=right+gap+width/2;
-  addPlatform(x,y,width);
-  right=x+width/2;
-  if(random()>.35) addObstacle(x-width*.18,y+.15,random()>.5?0:1);
-  if(random()>.25) addHeart(x-width*.3,y+1.55);
-  if(random()>.55) addHeart(x+width*.1,y+1.8);
-  if(i%2===0){
-   addFlower(x-width*.38,y+.25);
-   addFlower(x+width*.35,y+.25);
-  }
- }
- levelLength=right+5;
- goal=makeGoal(levelLength-.7,y+.2);
-
- // Some extra floating heart trails
- for(let i=0;i<3;i++){
-  const p=platforms[Math.floor(random()*platforms.length)];
-  if(p) addHeart(p.x,p.y+2.15+random()*.3);
- }
-
- player.x=0;
- player.y=1.15;
- player.vx=0;
- player.vy=0;
- player.grounded=false;
- cat.position.set(player.x,player.y,1);
- cat.rotation.z=0;
- updateHUD();
-}
-
-// ---------- UI ----------
-const overlay=document.getElementById('overlay');
-const dialog=document.getElementById('dialog');
-
-function showHome(){
- paused=true;
- gameRunning=false;
- overlay.classList.remove('hidden');
- dialog.innerHTML=`
- <h1>🐱 PurrBounce</h1>
- <p>Help your little kitty explore the world!<br>Collect hearts and reach the flower gate.</p>
- <p class="sub">Move: A / D or ← →<br>Jump: Space, W, or ↑</p>
- <div class="buttonRow">
- <button class="mainBtn" id="playBtn">Continue ♡</button>
- <button class="mainBtn secondary" id="skinMenuBtn">Cat Skins</button>
- <button class="mainBtn secondary" id="levelMenuBtn">Levels</button>
- </div>`;
- document.getElementById('playBtn').onclick=()=>{
-  overlay.classList.add('hidden');
-  paused=false;
-  gameRunning=true;
-  lastTime=performance.now();
-  startAudio();
- };
- document.getElementById('skinMenuBtn').onclick=showSkins;
- document.getElementById('levelMenuBtn').onclick=showLevels;
-}
-
-function showPause(){
- paused=true;
- overlay.classList.remove('hidden');
- dialog.innerHTML=`
- <h1>Taking a break? ♡</h1>
- <p>Your kitty is waiting for you!</p>
- <div class="buttonRow">
- <button class="mainBtn" id="resumeBtn">Resume</button>
- <button class="mainBtn secondary" id="restartBtn">Restart Level</button>
- <button class="mainBtn secondary" id="settingsBtn">Settings</button>
- <button class="mainBtn secondary" id="homeBtn">Main Menu</button>
- </div>`;
- document.getElementById('resumeBtn').onclick=resumeGame;
- document.getElementById('restartBtn').onclick=()=>startLevel(level);
- document.getElementById('settingsBtn').onclick=showSettings;
- document.getElementById('homeBtn').onclick=showHome;
-}
-
-function resumeGame(){
- overlay.classList.add('hidden');
- paused=false;
- gameRunning=true;
- lastTime=performance.now();
- startAudio();
-}
-
-function showSettings(){
- overlay.classList.remove('hidden');
- dialog.innerHTML=`
- <h1>Settings ⚙</h1>
- <h2>Sound</h2>
- <div class="buttonRow">
- <button class="mainBtn secondary" id="musicToggle">${musicOn?'♫ Music ON':'♫ Music OFF'}</button>
- <button class="mainBtn secondary" id="soundToggle">${soundOn?'🔊 Sounds ON':'🔇 Sounds OFF'}</button>
- </div>
- <h2>Kitty Appearance</h2>
- <button class="mainBtn" id="skinBtn">Choose Cat Skin ♡</button>
- <div class="buttonRow"><button class="mainBtn secondary" id="backBtn">Back</button></div>`;
- document.getElementById('musicToggle').onclick=()=>{
-  musicOn=!musicOn;
-  document.getElementById('musicToggle').textContent=musicOn?'♫ Music ON':'♫ Music OFF';
-  if(musicOn)startAudio();else stopMusic();
- };
- document.getElementById('soundToggle').onclick=()=>{
-  soundOn=!soundOn;
-  document.getElementById('soundToggle').textContent=soundOn?'🔊 Sounds ON':'🔇 Sounds OFF';
- };
- document.getElementById('skinBtn').onclick=showSkins;
- document.getElementById('backBtn').onclick=showPause;
-}
-
-function showSkins(){
- overlay.classList.remove('hidden');
- dialog.innerHTML=`
- <h1>Kitty Closet ♡</h1>
- <p>Choose your favorite kitty color!</p>
- <div class="skinGrid" id="skinGrid"></div>
- <div class="buttonRow"><button class="mainBtn secondary" id="skinBack">Back</button></div>`;
- const grid=document.getElementById('skinGrid');
- skins.forEach((s,i)=>{
-  const b=document.createElement('button');
-  b.className='skin'+(i===currentSkin?' selected':'');
-  b.innerHTML=`<div class="skinDot" style="background:${s.color}"></div>${s.name}`;
-  b.onclick=()=>{
-   currentSkin=i;
-   makeKitty();
-   showSkins();
-  };
-  grid.appendChild(b);
+   el.textContent=piece?PIECES[piece.color][piece.type]:"";
+   el.onclick=()=>clickSquare(square);
+   board.appendChild(el);
+  });
  });
- document.getElementById('skinBack').onclick=()=>{
-  if(gameRunning)showPause();else showHome();
- };
+
+ document.getElementById("status").textContent=
+  !running?"Ready to play? ♡":
+  (game.isCheck()?"Check! ":"")+
+  (game.turn()==="w"?player:opponent)+"'s turn";
 }
 
-function showLevels(){
- overlay.classList.remove('hidden');
- dialog.innerHTML=`
- <h1>Choose a Level 🌷</h1>
- <p>Complete levels to unlock more adventures!</p>
- <div class="levelGrid" id="levelGrid"></div>
- <div class="buttonRow"><button class="mainBtn secondary" id="levelBack">Back</button></div>`;
- const grid=document.getElementById('levelGrid');
- for(let i=1;i<=100;i++){
-  const b=document.createElement('button');
-  b.className='levelButton '+(i<=unlocked?'unlocked':'');
-  if(i===level)b.classList.add('current');
-  b.textContent=i;
-  b.disabled=i>unlocked;
-  b.onclick=()=>startLevel(i);
-  grid.appendChild(b);
+function clickSquare(sq){
+ if(!running||recorded)return;
+
+ if(selected){
+  const move=game.moves({square:selected,verbose:true})
+   .find(m=>m.to===sq);
+
+  if(move){
+   try{
+    game.move({from:selected,to:sq,promotion:"q"});
+    selected=null;
+    legalTargets=[];
+    draw();
+    checkGame();
+    return;
+   }catch(e){}
+  }
  }
- document.getElementById('levelBack').onclick=()=>{
-  if(gameRunning)showPause();else showHome();
- };
-}
 
-function showWin(){
- won=true;
- gameRunning=false;
- paused=true;
- unlocked=Math.max(unlocked,Math.min(100,level+1));
- overlay.classList.remove('hidden');
- if(level>=100){
-  dialog.innerHTML=`
-  <h1>100 Levels Complete! 🎉</h1>
-  <p>You and your kitty finished the whole adventure!<br>Collected hearts: <b>${hearts}</b></p>
-  <button class="mainBtn" id="replayBtn">Play Again ♡</button>`;
-  document.getElementById('replayBtn').onclick=()=>startLevel(1);
+ const piece=game.get(sq);
+ if(piece&&piece.color===game.turn()){
+  selected=sq;
+  legalTargets=game.moves({square:sq,verbose:true})
+   .map(m=>m.to);
  }else{
-  dialog.innerHTML=`
-  <h1>Meow-gical! ♡</h1>
-  <p>You completed Level ${level}!<br>Collected 💗 ${hearts} hearts.</p>
-  <div class="buttonRow">
-  <button class="mainBtn" id="nextBtn">Next Level →</button>
-  <button class="mainBtn secondary" id="levelBtn">Level Select</button>
-  </div>`;
-  document.getElementById('nextBtn').onclick=()=>startLevel(level+1);
-  document.getElementById('levelBtn').onclick=showLevels;
+  selected=null;
+  legalTargets=[];
  }
- tone(784,.25);
- setTimeout(()=>tone(988,.25),180);
- setTimeout(()=>tone(1175,.4),360);
+ draw();
 }
 
-function startLevel(n){
- level=THREE.MathUtils.clamp(n,1,100);
- buildLevel(level);
- won=false;
- paused=false;
- gameRunning=true;
- overlay.classList.add('hidden');
- updateHUD();
- lastTime=performance.now();
- startAudio();
+function startGame(){
+ player=document.getElementById("myName").value.trim();
+ opponent=document.getElementById("opName").value.trim();
+
+ if(!player||!opponent){
+  alert("Enter both player names first!");
+  return;
+ }
+
+ if(running)return;
+
+ mode=({60:"Bullet",180:"Blitz",600:"Rapid"})[
+  Number(document.getElementById("mode").value)
+ ];
+ times={w:Number(document.getElementById("mode").value),
+        b:Number(document.getElementById("mode").value)};
+
+ game=new Chess();
+ recorded=false;
+ running=true;
+ selected=null;
+ legalTargets=[];
+
+ document.getElementById("myLabel").textContent=player;
+ document.getElementById("opLabel").textContent=opponent;
+
+ updateClocks();
+ clearInterval(timer);
+ timer=setInterval(tick,1000);
+ draw();
 }
 
-function updateHUD(){
- document.getElementById('heartCount').textContent=hearts;
- document.getElementById('levelNum').textContent=level;
- document.getElementById('progress').style.width=
-  Math.min(100,Math.max(0,player.x/Math.max(levelLength,1)*100))+'%';
-}
+function tick(){
+ if(!running)return;
+ const color=game.turn();
+ times[color]--;
+ updateClocks();
 
-// ---------- SOUND ----------
-let audio=null;
-let musicTimer=null;
-let musicStep=0;
-let musicOn=true;
-let soundOn=true;
-const notes=[523,659,784,659,587,698,880,698,523,659,784,988,880,784,659,587];
-
-function startAudio(){
- if(!audio)audio=new(window.AudioContext||window.webkitAudioContext)();
- if(audio.state==='suspended')audio.resume();
- if(musicOn&&!musicTimer){
-  musicTimer=setInterval(()=>{
-   if(!gameRunning||paused||!musicOn)return;
-   const osc=audio.createOscillator();
-   const gain=audio.createGain();
-   osc.type='sine';
-   osc.frequency.value=notes[musicStep++%notes.length];
-   gain.gain.setValueAtTime(.018,audio.currentTime);
-   gain.gain.exponentialRampToValueAtTime(.001,audio.currentTime+.28);
-   osc.connect(gain);gain.connect(audio.destination);
-   osc.start();osc.stop(audio.currentTime+.3);
-  },310);
+ if(times[color]<=0){
+  finish(color==="w"?"Loss":"Win","Time ran out");
  }
 }
-function stopMusic(){
- if(musicTimer){clearInterval(musicTimer);musicTimer=null;}
-}
-function tone(freq,duration=.13){
- if(!audio||!soundOn)return;
- const osc=audio.createOscillator();
- const gain=audio.createGain();
- osc.type='sine';osc.frequency.value=freq;
- gain.gain.setValueAtTime(.045,audio.currentTime);
- gain.gain.exponentialRampToValueAtTime(.001,audio.currentTime+duration);
- osc.connect(gain);gain.connect(audio.destination);
- osc.start();osc.stop(audio.currentTime+duration);
-}
-document.getElementById('musicBtn').onclick=()=>{
- musicOn=!musicOn;
- document.getElementById('musicBtn').textContent=musicOn?'♫':'♫̸';
- if(musicOn)startAudio();else stopMusic();
-};
 
-// ---------- CONTROLS ----------
-const keys={left:false,right:false,jump:false};
-let jumpQueued=false;
-function keyDown(e){
- if(['ArrowLeft','ArrowRight','ArrowUp','Space'].includes(e.code))e.preventDefault();
- if(e.code==='ArrowLeft'||e.code==='KeyA')keys.left=true;
- if(e.code==='ArrowRight'||e.code==='KeyD')keys.right=true;
- if(['Space','ArrowUp','KeyW'].includes(e.code)){
-  if(!keys.jump)jumpQueued=true;
-  keys.jump=true;
+function updateClocks(){
+ document.getElementById("whiteClock").textContent=format(times.w);
+ document.getElementById("blackClock").textContent=format(times.b);
+}
+
+function checkGame(){
+ if(game.isCheckmate()){
+  finish(game.turn()==="b"?"Win":"Loss","Checkmate");
+ }else if(game.isGameOver()){
+  finish("Draw","Draw");
  }
- if(e.code==='Escape'&&gameRunning)showPause();
 }
-function keyUp(e){
- if(e.code==='ArrowLeft'||e.code==='KeyA')keys.left=false;
- if(e.code==='ArrowRight'||e.code==='KeyD')keys.right=false;
- if(['Space','ArrowUp','KeyW'].includes(e.code))keys.jump=false;
-}
-addEventListener('keydown',keyDown);
-addEventListener('keyup',keyUp);
 
-function bindHold(id,key){
- const el=document.getElementById(id);
- el.addEventListener('pointerdown',e=>{
-  e.preventDefault();
-  keys[key]=true;
-  if(key==='jump')jumpQueued=true;
-  el.setPointerCapture(e.pointerId);
+function finish(result,reason){
+ if(recorded)return;
+ recorded=true;
+ running=false;
+ clearInterval(timer);
+
+ const points=result==="Win"?3:result==="Draw"?1:0;
+
+ session.games.push({
+  opponent,player,mode,result,reason,points,
+  date:new Date().toLocaleString()
  });
- const release=()=>keys[key]=false;
- el.addEventListener('pointerup',release);
- el.addEventListener('pointercancel',release);
- el.addEventListener('lostpointercapture',release);
-}
-bindHold('leftBtn','left');
-bindHold('rightBtn','right');
-bindHold('jumpBtn','jump');
 
-document.getElementById('pauseBtn').onclick=()=>{
- if(gameRunning)showPause();
- else if(paused&&!won)resumeGame();
-};
-document.getElementById('playBtn').onclick=()=>startLevel(1);
-document.getElementById('skinMenuBtn').onclick=showSkins;
-document.getElementById('levelMenuBtn').onclick=showLevels;
+ session.points+=points;
+ save();
+ renderScores();
 
-// ---------- GAME PHYSICS ----------
-let lastTime=performance.now();
-let elapsed=0;
-
-function update(dt){
- if(!gameRunning||paused||won)return;
- elapsed+=dt;
-
- const oldY=player.y;
- const accel=22;
- if(keys.left)player.vx-=accel*dt;
- if(keys.right)player.vx+=accel*dt;
- if(!keys.left&&!keys.right)player.vx*=Math.pow(.001,dt);
- player.vx=THREE.MathUtils.clamp(player.vx,-8.5,8.5);
-
- if(jumpQueued&&player.grounded){
-  player.vy=10.7;
-  player.grounded=false;
-  tone(540);
- }
- jumpQueued=false;
-
- player.vy-=24*dt;
- player.x+=player.vx*dt;
- player.y+=player.vy*dt;
-
- player.grounded=false;
- for(const p of platforms){
-  const left=p.x-p.width/2;
-  const right=p.x+p.width/2;
-  const top=p.y+.23;
-  const overlaps=player.x+.55>left&&player.x-.55<right;
-  if(overlaps&&player.vy<=0&&
-    oldY-.7>=top-.08&&player.y-.7<=top+.08){
-   player.y=top+.7;
-   player.vy=0;
-   player.grounded=true;
-  }
- }
-
- // Obstacles bump the kitty rather than instantly ending the game.
- for(const o of obstacles){
-  if(!o.hit&&Math.abs(player.x-o.x)<.8&&Math.abs(player.y-(o.y+.65))<.95){
-   o.hit=true;
-   player.vx=-Math.sign(player.vx||1)*2.7;
-   player.vy=Math.max(player.vy,3.5);
-   tone(190,.2);
-   setTimeout(()=>o.hit=false,700);
-  }
- }
-
- // Collect hearts.
- for(const c of collectibles){
-  if(!c.taken&&Math.hypot(player.x-c.x,player.y-c.y)<1.15){
-   c.taken=true;
-   c.group.visible=false;
-   hearts++;
-   tone(880);
-  }
-  if(!c.taken){
-   c.group.position.y=c.y+Math.sin(elapsed*3+c.x)*.12;
-   c.group.rotation.y=Math.sin(elapsed*2+c.x)*.2;
-  }
- }
-
- // Falling into a gap sends the kitty back to the start of the level.
- if(player.y < -7){
-  player.x=0;player.y=1.3;player.vx=0;player.vy=0;
-  player.grounded=false;
-  tone(220,.2);
- }
-
- player.x=Math.max(-3,Math.min(player.x,levelLength+2));
- cat.position.set(player.x,player.y,1);
- if(player.grounded)cat.rotation.z-=player.vx*dt*.75;
- else cat.rotation.z-=player.vx*dt*.2;
-
- shadow.position.x=player.x;
- shadow.position.y=.05;
- shadow.scale.setScalar(Math.max(.4,1-Math.max(0,player.y-1)*.08));
-
- camera.position.x+=(player.x+2-camera.position.x)*Math.min(1,dt*3.5);
- camera.lookAt(camera.position.x,3,0);
-
- updateHUD();
- if(player.x>levelLength-1.2)showWin();
+ document.getElementById("status").textContent=
+  result==="Win"?"You won! ♡":
+  result==="Loss"?"You lost! ♡":"It's a draw! ♡";
 }
 
-// ---------- RENDER ----------
-function animate(time){
- requestAnimationFrame(animate);
- const dt=Math.min((time-lastTime)/1000||0,.035);
- lastTime=time;
- update(dt);
- renderer.render(scene,camera);
+function resign(){
+ if(running&&confirm("Are you sure you want to resign?")){
+  finish("Loss","Resignation");
+ }
 }
-requestAnimationFrame(animate);
 
-addEventListener('resize',()=>{
- const aspect=innerWidth/innerHeight;
- camera.left=-5.65*aspect;
- camera.right=5.65*aspect;
- camera.top=5.65;
- camera.bottom=-5.65;
- camera.updateProjectionMatrix();
- renderer.setSize(innerWidth,innerHeight);
-});
+function resetGame(){
+ if(running&&!confirm("Abandon this game?"))return;
+ running=false;
+ clearInterval(timer);
+ game=new Chess();
+ recorded=false;
+ selected=null;
+ legalTargets=[];
+ times={w:180,b:180};
+ updateClocks();
+ draw();
+}
 
-buildLevel(1);
-showHome();
+function renderScores(){
+ const games=session.games;
+ document.getElementById("wins").textContent=
+  games.filter(g=>g.result==="Win").length;
+ document.getElementById("losses").textContent=
+  games.filter(g=>g.result==="Loss").length;
+ document.getElementById("draws").textContent=
+  games.filter(g=>g.result==="Draw").length;
+ document.getElementById("points").textContent=
+  session.points+" points";
+
+ document.getElementById("matches").innerHTML=
+  games.map(g=>`
+   <div class="match">
+    <b>${escapeHTML(g.opponent)}</b> · ${g.mode}
+    <small>${g.date}</small>
+    <span>${g.result} (+${g.points})</span>
+   </div>
+  `).join("")||"No games yet ♡";
+}
+
+function endSession(){
+ if(running){
+  alert("Finish or abandon your current game first!");
+  return;
+ }
+
+ if(session.games.length===0){
+  alert("Play at least one game before ending your session!");
+  return;
+ }
+
+ if(!confirm("Save this session and start a fresh one?"))return;
+
+ archives.unshift({
+  ...session,
+  endedAt:new Date().toLocaleString()
+ });
+
+ session={games:[],points:0};
+ save();
+ renderScores();
+ renderArchives();
+}
+
+function renderArchives(){
+ document.getElementById("archives").innerHTML=
+  archives.map((s,i)=>`
+   <details class="match">
+    <summary>Session ${i+1} · ${s.points} points</summary>
+    <small>${s.date} · ${s.games.length} games</small>
+    ${s.games.map(g=>`
+     <p>${escapeHTML(g.opponent)} — ${g.result} (+${g.points})</p>
+    `).join("")}
+   </details>
+  `).join("")||"No previous sessions yet.";
+}
+
+function escapeHTML(str){
+ return String(str).replace(/[&<>"']/g,c=>({
+  "&":"&amp;","<":"&lt;",">":"&gt;",
+  '"':"&quot;","'":"&#39;"
+ }[c]));
+}
+
+draw();
+renderScores();
+renderArchives();
+updateClocks();
 </script>
 </body>
 </html>
