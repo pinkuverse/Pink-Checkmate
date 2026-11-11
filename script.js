@@ -1,9 +1,9 @@
 (function () {
-  /* ---------- CAT PIECES (SVG) ---------- */
+  /* ---------- PIECES (SVG) ---------- */
   const BASE = '<path d="M24 92h52v-7q0-5-5-5H29q-5 0-5 5z"/>';
   const FACE = (ex, ey, nx, ny, gap = 6) =>
     `<circle cx="${ex - gap}" cy="${ey}" r="2.6"/><circle cx="${ex + gap}" cy="${ey}" r="2.6"/><path d="M${nx - 3} ${ny}h6l-3 3.4z"/>`;
-  const PIECES = {
+  const CAT = {
     p: { s: '<path d="M36 38 37 18 50 30zM64 38 63 18 50 30z"/><path d="M33 82Q35 62 50 60Q65 62 67 82z"/><circle cx="50" cy="46" r="16"/>' + BASE, f: FACE(50, 46, 50, 52) },
     r: { s: '<path d="M30 84 34 52H66L70 84z"/><path d="M30 54 30 16 44 30H56L70 16 70 54z"/>' + BASE, f: FACE(50, 42, 50, 47, 8) },
     b: { s: '<path d="M34 58 30 40 44 48zM66 58 70 40 56 48z"/><path d="M34 82Q34 68 50 62Q66 68 66 82z"/><path d="M50 10Q70 28 66 58H34Q30 28 50 10z"/><circle cx="50" cy="9" r="4.5"/>' + BASE + '<path class="line" d="M53 20 45 34"/>', f: FACE(50, 48, 50, 53) },
@@ -11,12 +11,35 @@
     k: { s: '<path d="M46 5H54V12H61V20H54V30H46V20H39V12H46z"/><path d="M35 48 36 30 49 42zM65 48 64 30 51 42z"/><path d="M30 84Q32 68 50 66Q68 68 70 84z"/><circle cx="50" cy="55" r="16"/>' + BASE, f: FACE(50, 55, 50, 61) },
     n: { s: '<path d="M58 28 66 12 73 34z"/><path d="M30 84C30 66 38 58 42 50L32 48C28 42 34 34 42 32L46 14 56 26C72 28 78 46 74 62C73 70 72 78 72 84z"/>' + BASE, f: '<circle cx="52" cy="38" r="2.8"/><circle cx="33" cy="45" r="2.6"/>' }
   };
+  const CLASSIC = {
+    p: { s: '<circle cx="50" cy="30" r="12"/><path d="M42 44h16l-3 8q10 8 12 28H33q2-20 12-28z"/>' + BASE, f: '' },
+    r: { s: '<path d="M32 18h9v8h6v-8h6v8h6v-8h9v22l-6 6 3 26H35l3-26-6-6z"/>' + BASE, f: '' },
+    n: { s: '<path d="M28 82C30 62 36 54 46 46L30 52C26 52 24 48 28 44L44 26 46 14 54 22C72 26 78 48 74 66L74 82z"/>' + BASE, f: '<circle cx="55" cy="35" r="3"/>' },
+    b: { s: '<path d="M50 12C64 26 66 38 60 50H40C34 38 36 26 50 12z"/><circle cx="50" cy="9" r="4.5"/><path d="M36 50h28v7H36zM41 57h18l5 23H36z"/>' + BASE + '<path class="line" d="M54 24 47 36"/>', f: '' },
+    q: { s: '<path d="M28 34 33 46 39 24 44 44 50 20 56 44 61 24 67 46 72 34 66 64H34z"/><circle cx="28" cy="31" r="3.6"/><circle cx="39" cy="21" r="3.6"/><circle cx="50" cy="17" r="3.6"/><circle cx="61" cy="21" r="3.6"/><circle cx="72" cy="31" r="3.6"/><path d="M34 64h32l4 16H30z"/>' + BASE, f: '' },
+    k: { s: '<path d="M46 5h8v7h7v8h-7v7h-8v-7h-7v-8h7z"/><path d="M36 56Q34 34 50 31Q66 34 64 56z"/><path d="M36 56h28v6H36zM40 62h20l5 18H35z"/>' + BASE, f: '' }
+  };
+  const SETS = { classic: CLASSIC, cat: CAT };
   const NAMES = { k: 'King', q: 'Queen', r: 'Rook', b: 'Bishop', n: 'Knight', p: 'Pawn' };
   const MOVES = { k: 'One step any way', q: 'Slides any direction', r: 'Straight lines', b: 'Diagonals', n: 'Jumps in an L', p: 'Forward, captures diagonal' };
-  function pc(type, color, style) {
-    const p = PIECES[type];
+  let pieceStyle = 'classic', pieceColor = 'pink', boardTheme = 'blush';
+  function pc(type, color, style, ps) {
+    const p = SETS[ps || pieceStyle][type];
     return `<svg class="pc ${color}" viewBox="0 0 100 100" ${style ? `style="${style}"` : ''}><g class="shape">${p.s}</g><g class="face">${p.f}</g></svg>`;
   }
+  const PCOLORS = {
+    pink:     { n: 'Pink',     wf: '#fff5f9', ws: '#e07aa3', bf: '#f06fa0', bs: '#b83c73', bface: '#ffffff' },
+    green:    { n: 'Green',    wf: '#f3fff8', ws: '#4fae86', bf: '#57c796', bs: '#2d8a62', bface: '#ffffff' },
+    lavender: { n: 'Lavender', wf: '#f8f4ff', ws: '#9b86d6', bf: '#a78ce6', bs: '#6a52b3', bface: '#ffffff' },
+    blue:     { n: 'Sky',      wf: '#f2faff', ws: '#5aa2d6', bf: '#6cb4ec', bs: '#3a78ab', bface: '#ffffff' }
+  };
+  const BOARDS = {
+    blush:    { n: 'Blush',    l: '#fff0f6', d: '#f4b6cd', b: '#f5aac8' },
+    mint:     { n: 'Mint',     l: '#f1fbf5', d: '#a9dcc0', b: '#8fd0ae' },
+    lavender: { n: 'Lavender', l: '#f6f1ff', d: '#cbbbf0', b: '#b8a3ea' },
+    sky:      { n: 'Sky',      l: '#eff8ff', d: '#a9cdee', b: '#8fbbe4' },
+    peach:    { n: 'Peach',    l: '#fff5ee', d: '#f5c7aa', b: '#f0b490' }
+  };
 
   /* ---------- MODES ---------- */
   const MODES = [
@@ -26,7 +49,7 @@
     { id: 'relaxed', name: 'Relaxed', time: 0, inc: 0, label: 'No clock', desc: 'Undo allowed', icon: 'q' }
   ];
 
-  /* ---------- SCREENS + HOME ART ---------- */
+  /* ---------- SCREENS, ART, SETTINGS ---------- */
   const $ = id => document.getElementById(id);
   function show(id) {
     document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === id));
@@ -34,15 +57,54 @@
   }
   document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => show(b.dataset.go)));
 
-  $('heroArt').innerHTML =
-    pc('k', 'w', 'width:42%;left:4%;top:6%') + pc('q', 'b', 'width:42%;right:2%;top:0%') +
-    pc('n', 'w', 'width:34%;left:16%;bottom:0%') + pc('r', 'b', 'width:34%;right:12%;bottom:4%');
-  $('legend').innerHTML = ['k', 'q', 'r', 'b', 'n', 'p'].map(t =>
-    `<div>${pc(t, 'w')}<strong>${NAMES[t]}</strong><small>${MOVES[t]}</small></div>`).join('');
-  $('modeGrid').innerHTML = MODES.map(m =>
-    `<button class="mode" data-mode="${m.id}">${pc(m.icon, 'w')}<strong>${m.name}</strong><div class="t">${m.label}</div><small>${m.desc}</small></button>`).join('');
-  $('avWhite').innerHTML = pc('k', 'w');
-  $('avBlack').innerHTML = pc('k', 'b');
+  function refreshArt() {
+    $('heroArt').innerHTML =
+      pc('k', 'w', 'width:42%;left:4%;top:6%') + pc('q', 'b', 'width:42%;right:2%;top:0%') +
+      pc('n', 'w', 'width:34%;left:16%;bottom:0%') + pc('r', 'b', 'width:34%;right:12%;bottom:4%');
+    $('legend').innerHTML = ['k', 'q', 'r', 'b', 'n', 'p'].map(t =>
+      `<div>${pc(t, 'w')}<strong>${NAMES[t]}</strong><small>${MOVES[t]}</small></div>`).join('');
+    $('modeGrid').innerHTML = MODES.map(m =>
+      `<button class="mode" data-mode="${m.id}">${pc(m.icon, 'w')}<strong>${m.name}</strong><div class="t">${m.label}</div><small>${m.desc}</small></button>`).join('');
+    $('avWhite').innerHTML = pc('k', 'w');
+    $('avBlack').innerHTML = pc('k', 'b');
+  }
+  function applyTheme() {
+    const c = PCOLORS[pieceColor], b = BOARDS[boardTheme], r = document.documentElement.style;
+    r.setProperty('--wf', c.wf); r.setProperty('--ws', c.ws); r.setProperty('--bf', c.bf); r.setProperty('--bs', c.bs); r.setProperty('--bface', c.bface);
+    r.setProperty('--lsq', b.l); r.setProperty('--dsq', b.d); r.setProperty('--bd', b.b);
+  }
+  function loadSettings() {
+    try {
+      const s = JSON.parse(localStorage.getItem('pcSettings') || '{}');
+      if (SETS[s.style]) pieceStyle = s.style;
+      if (PCOLORS[s.color]) pieceColor = s.color;
+      if (BOARDS[s.board]) boardTheme = s.board;
+    } catch (e) {}
+  }
+  function saveSettings() {
+    try { localStorage.setItem('pcSettings', JSON.stringify({ style: pieceStyle, color: pieceColor, board: boardTheme })); } catch (e) {}
+  }
+  function buildSettings() {
+    const act = (a, b) => (a === b ? ' active' : '');
+    $('optStyle').innerHTML = [['classic', 'Classic'], ['cat', 'Cat']].map(([k, n]) =>
+      `<button class="opt${act(pieceStyle, k)}" data-k="style" data-v="${k}">${pc('k', 'w', '', k)}<small>${n}</small></button>`).join('');
+    $('optColor').innerHTML = Object.entries(PCOLORS).map(([k, c]) =>
+      `<button class="opt${act(pieceColor, k)}" data-k="color" data-v="${k}"><span class="sw"><i style="background:${c.wf};border-color:${c.ws}"></i><i style="background:${c.bf};border-color:${c.bs}"></i></span><small>${c.n}</small></button>`).join('');
+    $('optBoard').innerHTML = Object.entries(BOARDS).map(([k, b]) =>
+      `<button class="opt${act(boardTheme, k)}" data-k="board" data-v="${k}"><span class="mini"><b style="background:${b.l}"></b><b style="background:${b.d}"></b><b style="background:${b.d}"></b><b style="background:${b.l}"></b></span><small>${b.n}</small></button>`).join('');
+  }
+  function changeSetting(k, v) {
+    if (k === 'style') pieceStyle = v; else if (k === 'color') pieceColor = v; else boardTheme = v;
+    saveSettings(); applyTheme(); refreshArt(); buildSettings();
+    if ($('game').classList.contains('active')) render();
+  }
+  $('setModal').addEventListener('click', e => {
+    const b = e.target.closest('.opt');
+    if (b) changeSetting(b.dataset.k, b.dataset.v);
+    else if (e.target.id === 'setModal') $('setModal').classList.remove('open');
+  });
+  $('setDone').onclick = () => $('setModal').classList.remove('open');
+  document.querySelectorAll('[data-settings]').forEach(b => b.addEventListener('click', () => { buildSettings(); $('setModal').classList.add('open'); }));
 
   /* ---------- GAME ---------- */
   const game = new Chess();
@@ -50,7 +112,7 @@
   let mode = MODES[1], times = { w: 0, b: 0 }, tick = null, lastTs = 0, over = false;
   let selected = null, legal = [], lastMove = null;
 
-  document.querySelectorAll('.mode').forEach(b => b.addEventListener('click', () => start(MODES.find(m => m.id === b.dataset.mode))));
+  $('modeGrid').addEventListener('click', e => { const b = e.target.closest('.mode'); if (b) start(MODES.find(m => m.id === b.dataset.mode)); });
 
   function start(m) {
     mode = m || mode;
@@ -196,4 +258,6 @@
   $('menuBtn').onclick = () => { clearInterval(tick); over = true; show('modes'); };
   $('overMenuBtn').onclick = () => { $('overModal').classList.remove('open'); show('modes'); };
   $('overViewBtn').onclick = () => $('overModal').classList.remove('open');
+
+  loadSettings(); applyTheme(); refreshArt();
 })();
