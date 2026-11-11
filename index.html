@@ -1,391 +1,136 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Pink Checkmate ♡</title>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/1.4.0/chess.min.js"></script>
-
-<style>
-*{box-sizing:border-box}
-body{
- margin:0;background:#fff1f7;color:#925b78;
- font-family:Arial,sans-serif;padding:20px;
-}
-header{text-align:center;padding:20px}
-h1{color:#d77ca5;font-size:35px}
-main{max-width:650px;margin:auto}
-.card{
- background:white;border:2px solid #f5d4e4;
- border-radius:20px;padding:20px;margin-bottom:20px;
- box-shadow:0 5px 15px #e9bcd033;
-}
-input,select,button{
- width:100%;padding:12px;margin:7px 0;
- border:1px solid #edc8da;border-radius:12px;
- font-size:15px;
-}
-button{background:#e99abd;color:white;border:0;
- font-weight:bold;cursor:pointer}
-button:disabled{opacity:.5;cursor:not-allowed}
-.board{
- display:grid;grid-template-columns:repeat(8,1fr);
- width:100%;aspect-ratio:1;border:5px solid #e6a8c4;
-}
-.square{
- aspect-ratio:1;border:0;border-radius:0;
- padding:0;display:flex;align-items:center;
- justify-content:center;position:relative;
- font-size:clamp(22px,8vw,55px);
-}
-.light{background:#ffeaf3}
-.dark{background:#e6a8c4}
-.selected{background:#ffce69}
-.target:after{
- content:"";width:22%;height:22%;
- background:#bd7397;border-radius:50%;
- position:absolute;
-}
-.players{display:flex;justify-content:space-between;
- text-align:center;gap:10px}
-.players div{background:#fff0f6;padding:10px;
- border-radius:12px;flex:1}
-.score{display:flex;justify-content:space-around;
- text-align:center}
-.score strong{font-size:30px;color:#d77ca5}
-.match{border-bottom:1px solid #f4dce7;padding:12px 0}
-small{display:block;color:#b88ba1}
-footer{text-align:center;padding:20px}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f9dce8">
+  <title>Blush & Checkmate ♡</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+  <script src="script.js" defer></script>
 </head>
 
 <body>
-<header>
-<h1>♡ Pink Checkmate ♡</h1>
-<p>Your cozy little chess club 🎀</p>
-</header>
+  <header class="navbar">
+    <a href="#" class="logo">blush <span>&</span> checkmate ♡</a>
+    <button class="settings-btn" id="settingsBtn">⚙ Settings</button>
+  </header>
 
-<main>
+  <main class="container">
+    <section class="welcome">
+      <p class="eyebrow">A LITTLE GAME OF STRATEGY</p>
+      <h1>Let's play <span>chess.</span></h1>
+      <p class="subtitle">Make your move, darling. ♡</p>
+    </section>
 
-<section class="card">
-<h2>Game Setup</h2>
-<input id="myName" placeholder="Your name">
-<input id="opName" placeholder="Opponent's name">
+    <section class="game-layout">
+      <div class="game-card">
+        <div class="player">
+          <div class="avatar">♛</div>
+          <div>
+            <strong>Black</strong>
+            <small>Player 2</small>
+          </div>
+          <span class="turn-indicator" id="blackTurn"></span>
+        </div>
 
-<select id="mode">
-<option value="60">Bullet - 1 minute</option>
-<option value="180" selected>Blitz - 3 minutes</option>
-<option value="600">Rapid - 10 minutes</option>
-</select>
+        <div id="chessboard" class="chessboard"></div>
 
-<button onclick="startGame()">Start Game ♡</button>
-</section>
+        <div class="player bottom-player">
+          <div class="avatar">♕</div>
+          <div>
+            <strong>White</strong>
+            <small>Player 1</small>
+          </div>
+          <span class="turn-indicator" id="whiteTurn"></span>
+        </div>
 
-<section class="card">
-<div class="players">
-<div>
-<b id="opLabel">Opponent</b>
-<h2 id="blackClock">03:00</h2>
-</div>
-<div>
-<b id="myLabel">You</b>
-<h2 id="whiteClock">03:00</h2>
-</div>
-</div>
+        <div class="game-status" id="gameStatus">
+          White's turn ♡
+        </div>
 
-<div id="board" class="board"></div>
-<p id="status" style="text-align:center">Ready to play? ♡</p>
+        <div class="controls">
+          <button id="undoBtn" class="secondary-btn">↶ Undo</button>
+          <button id="restartBtn" class="primary-btn">♡ Restart</button>
+        </div>
+      </div>
 
-<button onclick="resign()">Resign</button>
-<button onclick="resetGame()" style="background:#d6a2bb">
-New Game
-</button>
-</section>
+      <aside class="side-panel">
+        <div class="panel-card">
+          <h3>♡ Game details</h3>
+          <p class="detail-label">CURRENT SKIN</p>
+          <p id="currentSkin" class="skin-name">Classic</p>
+          <div class="divider"></div>
+          <p class="detail-label">MOVES PLAYED</p>
+          <p id="moveCount" class="detail-value">0</p>
+        </div>
 
-<section class="card">
-<h2>♡ Current Session</h2>
-<div class="score">
-<div><strong id="wins">0</strong><br>Wins</div>
-<div><strong id="losses">0</strong><br>Losses</div>
-<div><strong id="draws">0</strong><br>Draws</div>
-</div>
-<h2 id="points" style="text-align:center">0 points</h2>
+        <div class="panel-card">
+          <h3>♡ Move history</h3>
+          <div id="moveHistory" class="move-history">
+            <p class="empty-history">Your story starts here...</p>
+          </div>
+        </div>
 
-<h3>Match History</h3>
-<div id="matches">No games yet ♡</div>
+        <div class="panel-card note-card">
+          <p>“Every move tells a story.”</p>
+          <span>— Blush & Checkmate</span>
+        </div>
+      </aside>
+    </section>
 
-<button onclick="endSession()">End Session ♡</button>
-</section>
+    <footer>
+      Made with ♡ in cotton pink & blush pink.
+    </footer>
+  </main>
 
-<section class="card">
-<h2>Previous Sessions</h2>
-<div id="archives">No previous sessions yet.</div>
-</section>
+  <!-- SETTINGS MODAL -->
+  <div class="modal-overlay" id="settingsModal">
+    <div class="modal">
+      <button class="close-btn" id="closeSettings">×</button>
+      <p class="eyebrow">PERSONALIZE YOUR GAME</p>
+      <h2>Game settings ♡</h2>
 
-<footer>Made with ♡ for chess lovers</footer>
-</main>
+      <h3>Choose your chess skin</h3>
 
-<script>
-const PIECES={
- w:{k:"♔",q:"♕",r:"♖",b:"♗",n:"♘",p:"♙"},
- b:{k:"♚",q:"♛",r:"♜",b:"♝",n:"♞",p:"♟"}
-};
+      <div class="skin-options">
+        <button class="skin-option active" data-skin="classic">
+          <span class="skin-preview">♔ ♕ ♖</span>
+          <strong>Classic</strong>
+          <small>Original chess pieces</small>
+        </button>
 
-let game=new Chess();
-let selected=null;
-let legalTargets=[];
-let running=false;
-let timer=null;
-let times={w:180,b:180};
-let opponent="";
-let player="";
-let mode="Blitz";
-let recorded=false;
+        <button class="skin-option" data-skin="cat">
+          <span class="skin-preview">🐱 🐈 🐾</span>
+          <strong>Cat collection</strong>
+          <small>Meow meow ♡</small>
+        </button>
 
-let session=JSON.parse(
- localStorage.getItem("pinkSession") ||
- '{"games":[],"points":0}'
-);
-let archives=JSON.parse(
- localStorage.getItem("pinkArchives") || "[]"
-);
+        <button class="skin-option" data-skin="bunny">
+          <span class="skin-preview">🐰 🐇 🥕</span>
+          <strong>Bunny collection</strong>
+          <small>Hop into chess!</small>
+        </button>
+      </div>
 
-function save(){
- localStorage.setItem("pinkSession",JSON.stringify(session));
- localStorage.setItem("pinkArchives",JSON.stringify(archives));
-}
+      <div class="settings-tip">
+        ♡ Your selected skin will be saved on this device.
+      </div>
 
-function format(n){
- return String(Math.floor(n/60)).padStart(2,"0")+":"+
- String(n%60).padStart(2,"0");
-}
+      <button class="primary-btn save-btn" id="saveSettings">
+        Done ♡
+      </button>
+    </div>
+  </div>
 
-function draw(){
- const board=document.getElementById("board");
- board.innerHTML="";
- const position=game.board();
+  <!-- PROMOTION MODAL -->
+  <div class="modal-overlay" id="promotionModal">
+    <div class="modal promotion-modal">
+      <h2>Choose your piece ♡</h2>
+      <p>Your pawn reached the other side!</p>
+      <div id="promotionChoices" class="promotion-choices"></div>
+    </div>
+  </div>
 
- position.forEach((row,r)=>{
-  row.forEach((piece,c)=>{
-   const square="abcdefgh"[c]+(8-r);
-   const el=document.createElement("button");
-
-   el.className="square "+
-    ((r+c)%2===0?"light":"dark")+
-    (selected===square?" selected":"")+
-    (legalTargets.includes(square)?" target":"");
-
-   el.textContent=piece?PIECES[piece.color][piece.type]:"";
-   el.onclick=()=>clickSquare(square);
-   board.appendChild(el);
-  });
- });
-
- document.getElementById("status").textContent=
-  !running?"Ready to play? ♡":
-  (game.isCheck()?"Check! ":"")+
-  (game.turn()==="w"?player:opponent)+"'s turn";
-}
-
-function clickSquare(sq){
- if(!running||recorded)return;
-
- if(selected){
-  const move=game.moves({square:selected,verbose:true})
-   .find(m=>m.to===sq);
-
-  if(move){
-   try{
-    game.move({from:selected,to:sq,promotion:"q"});
-    selected=null;
-    legalTargets=[];
-    draw();
-    checkGame();
-    return;
-   }catch(e){}
-  }
- }
-
- const piece=game.get(sq);
- if(piece&&piece.color===game.turn()){
-  selected=sq;
-  legalTargets=game.moves({square:sq,verbose:true})
-   .map(m=>m.to);
- }else{
-  selected=null;
-  legalTargets=[];
- }
- draw();
-}
-
-function startGame(){
- player=document.getElementById("myName").value.trim();
- opponent=document.getElementById("opName").value.trim();
-
- if(!player||!opponent){
-  alert("Enter both player names first!");
-  return;
- }
-
- if(running)return;
-
- mode=({60:"Bullet",180:"Blitz",600:"Rapid"})[
-  Number(document.getElementById("mode").value)
- ];
- times={w:Number(document.getElementById("mode").value),
-        b:Number(document.getElementById("mode").value)};
-
- game=new Chess();
- recorded=false;
- running=true;
- selected=null;
- legalTargets=[];
-
- document.getElementById("myLabel").textContent=player;
- document.getElementById("opLabel").textContent=opponent;
-
- updateClocks();
- clearInterval(timer);
- timer=setInterval(tick,1000);
- draw();
-}
-
-function tick(){
- if(!running)return;
- const color=game.turn();
- times[color]--;
- updateClocks();
-
- if(times[color]<=0){
-  finish(color==="w"?"Loss":"Win","Time ran out");
- }
-}
-
-function updateClocks(){
- document.getElementById("whiteClock").textContent=format(times.w);
- document.getElementById("blackClock").textContent=format(times.b);
-}
-
-function checkGame(){
- if(game.isCheckmate()){
-  finish(game.turn()==="b"?"Win":"Loss","Checkmate");
- }else if(game.isGameOver()){
-  finish("Draw","Draw");
- }
-}
-
-function finish(result,reason){
- if(recorded)return;
- recorded=true;
- running=false;
- clearInterval(timer);
-
- const points=result==="Win"?3:result==="Draw"?1:0;
-
- session.games.push({
-  opponent,player,mode,result,reason,points,
-  date:new Date().toLocaleString()
- });
-
- session.points+=points;
- save();
- renderScores();
-
- document.getElementById("status").textContent=
-  result==="Win"?"You won! ♡":
-  result==="Loss"?"You lost! ♡":"It's a draw! ♡";
-}
-
-function resign(){
- if(running&&confirm("Are you sure you want to resign?")){
-  finish("Loss","Resignation");
- }
-}
-
-function resetGame(){
- if(running&&!confirm("Abandon this game?"))return;
- running=false;
- clearInterval(timer);
- game=new Chess();
- recorded=false;
- selected=null;
- legalTargets=[];
- times={w:180,b:180};
- updateClocks();
- draw();
-}
-
-function renderScores(){
- const games=session.games;
- document.getElementById("wins").textContent=
-  games.filter(g=>g.result==="Win").length;
- document.getElementById("losses").textContent=
-  games.filter(g=>g.result==="Loss").length;
- document.getElementById("draws").textContent=
-  games.filter(g=>g.result==="Draw").length;
- document.getElementById("points").textContent=
-  session.points+" points";
-
- document.getElementById("matches").innerHTML=
-  games.map(g=>`
-   <div class="match">
-    <b>${escapeHTML(g.opponent)}</b> · ${g.mode}
-    <small>${g.date}</small>
-    <span>${g.result} (+${g.points})</span>
-   </div>
-  `).join("")||"No games yet ♡";
-}
-
-function endSession(){
- if(running){
-  alert("Finish or abandon your current game first!");
-  return;
- }
-
- if(session.games.length===0){
-  alert("Play at least one game before ending your session!");
-  return;
- }
-
- if(!confirm("Save this session and start a fresh one?"))return;
-
- archives.unshift({
-  ...session,
-  endedAt:new Date().toLocaleString()
- });
-
- session={games:[],points:0};
- save();
- renderScores();
- renderArchives();
-}
-
-function renderArchives(){
- document.getElementById("archives").innerHTML=
-  archives.map((s,i)=>`
-   <details class="match">
-    <summary>Session ${i+1} · ${s.points} points</summary>
-    <small>${s.date} · ${s.games.length} games</small>
-    ${s.games.map(g=>`
-     <p>${escapeHTML(g.opponent)} — ${g.result} (+${g.points})</p>
-    `).join("")}
-   </details>
-  `).join("")||"No previous sessions yet.";
-}
-
-function escapeHTML(str){
- return String(str).replace(/[&<>"']/g,c=>({
-  "&":"&amp;","<":"&lt;",">":"&gt;",
-  '"':"&quot;","'":"&#39;"
- }[c]));
-}
-
-draw();
-renderScores();
-renderArchives();
-updateClocks();
-</script>
 </body>
 </html>
