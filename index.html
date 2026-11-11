@@ -19,25 +19,25 @@
   <section id="home" class="screen active">
     <header class="nav">
       <span class="brand">Pink Checkmate</span>
-      <button class="btn small" data-go="modes">Play</button>
+      <div class="navbtns"><button class="btn small ghost" data-settings>⚙ Settings</button><button class="btn small" data-go="modes">Play</button></div>
     </header>
 
     <div class="hero">
       <div class="hero-text">
         <h1>Pink Checkmate</h1>
-        <p>Chess with a court of cats. Pick a mode, set the clock, and play a friend on the same screen.</p>
+        <p>A soft pink chess game for two. Pick a mode, set the clock, and play a friend on the same screen.</p>
         <button class="btn big" data-go="modes">Play now</button>
       </div>
       <div class="hero-art" id="heroArt" aria-hidden="true"></div>
     </div>
 
     <div class="court">
-      <h2>Meet the court</h2>
-      <p class="court-sub">Every cat keeps the shape of its chess piece, so you always know who is who.</p>
+      <h2>Meet the pieces</h2>
+      <p class="court-sub">Classic pieces by default. Switch to cat pieces and change colors anytime in Settings.</p>
       <div id="legend" class="legend"></div>
     </div>
 
-    <footer>Pink Checkmate · made with love and a lot of cats</footer>
+    <footer>Pink Checkmate · made with love</footer>
   </section>
 
   <!-- 2. MODE SELECT -->
@@ -45,6 +45,7 @@
     <header class="nav">
       <button class="btn small ghost" data-go="home">← Home</button>
       <span class="brand">Pink Checkmate</span>
+      <button class="btn small ghost" data-settings>⚙ Settings</button>
     </header>
     <div class="modes-wrap">
       <h2>Choose your mode</h2>
@@ -58,6 +59,7 @@
     <header class="nav">
       <button class="btn small ghost" id="menuBtn">← Modes</button>
       <span class="brand" id="modeLabel">Blitz</span>
+      <button class="btn small ghost" data-settings>⚙ Settings</button>
     </header>
 
     <div class="play">
@@ -93,6 +95,17 @@
       </aside>
     </div>
   </section>
+
+  <!-- SETTINGS -->
+  <div class="overlay" id="setModal">
+    <div class="modal">
+      <h2>Settings</h2>
+      <div class="set-group"><h3>Piece style</h3><div class="opts" id="optStyle"></div></div>
+      <div class="set-group"><h3>Piece colors</h3><div class="opts" id="optColor"></div></div>
+      <div class="set-group"><h3>Board colors</h3><div class="opts" id="optBoard"></div></div>
+      <div class="controls center"><button class="btn" id="setDone">Done</button></div>
+    </div>
+  </div>
 
   <!-- PROMOTION -->
   <div class="overlay" id="promoModal">
