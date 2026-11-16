@@ -19,13 +19,16 @@
     q: { s: '<path d="M28 34 33 46 39 24 44 44 50 20 56 44 61 24 67 46 72 34 66 64H34z"/><circle cx="28" cy="31" r="3.6"/><circle cx="39" cy="21" r="3.6"/><circle cx="50" cy="17" r="3.6"/><circle cx="61" cy="21" r="3.6"/><circle cx="72" cy="31" r="3.6"/><path d="M34 64h32l4 16H30z"/>' + BASE, f: '' },
     k: { s: '<path d="M46 5h8v7h7v8h-7v7h-8v-7h-7v-8h7z"/><path d="M36 56Q34 34 50 31Q66 34 64 56z"/><path d="M36 56h28v6H36zM40 62h20l5 18H35z"/>' + BASE, f: '' }
   };
-  const SETS = { classic: CLASSIC, cat: CAT };
+  const SETS = { classic: CLASSIC, cat: CAT, glossy: CLASSIC };
   const NAMES = { k: 'King', q: 'Queen', r: 'Rook', b: 'Bishop', n: 'Knight', p: 'Pawn' };
   const MOVES = { k: 'One step any way', q: 'Slides any direction', r: 'Straight lines', b: 'Diagonals', n: 'Jumps in an L', p: 'Forward, captures diagonal' };
   let pieceStyle = 'classic', pieceColor = 'pink', boardTheme = 'blush';
   function pc(type, color, style, ps) {
-    const p = SETS[ps || pieceStyle][type];
-    return `<svg class="pc ${color}" viewBox="0 0 100 100" ${style ? `style="${style}"` : ''}><g class="shape">${p.s}</g><g class="face">${p.f}</g></svg>`;
+    ps = ps || pieceStyle;
+    const p = SETS[ps][type];
+    const shine = ps === 'glossy'
+      ? `<g class="shade" fill="url(#shade)" stroke="none">${p.s}</g><g class="gloss" fill="url(#gloss)" stroke="none">${p.s}</g>` : '';
+    return `<svg class="pc ${color}${ps === 'glossy' ? ' glossy' : ''}" viewBox="0 0 100 100" ${style ? `style="${style}"` : ''}><g class="shape">${p.s}</g>${shine}<g class="face">${p.f}</g></svg>`;
   }
   const PCOLORS = {
     pink:     { n: 'Pink',     wf: '#fff5f9', ws: '#e07aa3', bf: '#f06fa0', bs: '#b83c73', bface: '#ffffff' },
@@ -86,7 +89,7 @@
   }
   function buildSettings() {
     const act = (a, b) => (a === b ? ' active' : '');
-    $('optStyle').innerHTML = [['classic', 'Classic'], ['cat', 'Cat']].map(([k, n]) =>
+    $('optStyle').innerHTML = [['classic', 'Classic'], ['cat', 'Cat'], ['glossy', 'Glossy']].map(([k, n]) =>
       `<button class="opt${act(pieceStyle, k)}" data-k="style" data-v="${k}">${pc('k', 'w', '', k)}<small>${n}</small></button>`).join('');
     $('optColor').innerHTML = Object.entries(PCOLORS).map(([k, c]) =>
       `<button class="opt${act(pieceColor, k)}" data-k="color" data-v="${k}"><span class="sw"><i style="background:${c.wf};border-color:${c.ws}"></i><i style="background:${c.bf};border-color:${c.bs}"></i></span><small>${c.n}</small></button>`).join('');
