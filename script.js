@@ -19,20 +19,39 @@
     q: { s: '<path d="M28 34 33 46 39 24 44 44 50 20 56 44 61 24 67 46 72 34 66 64H34z"/><circle cx="28" cy="31" r="3.6"/><circle cx="39" cy="21" r="3.6"/><circle cx="50" cy="17" r="3.6"/><circle cx="61" cy="21" r="3.6"/><circle cx="72" cy="31" r="3.6"/><path d="M34 64h32l4 16H30z"/>' + BASE, f: '' },
     k: { s: '<path d="M46 5h8v7h7v8h-7v7h-8v-7h-7v-8h7z"/><path d="M36 56Q34 34 50 31Q66 34 64 56z"/><path d="M36 56h28v6H36zM40 62h20l5 18H35z"/>' + BASE, f: '' }
   };
-  const SETS = { classic: CLASSIC, cat: CAT, glossy: CLASSIC };
+  const BASE2 = '<path d="M24 92h52v-5q0-3-3-3H27q-3 0-3 3z"/><path d="M30 83h40v-5H30z"/>';
+  const ROYAL = {
+    p: { s: '<circle cx="50" cy="26" r="11"/><path d="M37 41h26v6H37z"/><path d="M42 47Q41 62 33 78h34Q59 62 58 47z"/>' + BASE2 + '<path class="line" d="M45 22q3-4 8-2"/><path class="line" d="M41 62q9 4 18 0"/>', f: '' },
+    r: { s: '<path d="M30 14h9v7h6v-7h10v7h6v-7h9v20H30z"/><path d="M34 34h32l-2 7H36z"/><path d="M37 41h26l3 37H34z"/>' + BASE2 + '<path class="line" d="M33 27h34"/><path class="line" d="M37 56h26"/><path class="line" d="M42 44l-2 28"/>', f: '' },
+    n: { s: '<path d="M30 78C30 64 36 54 46 46 40 47 34 48 28 46 24 44 26 40 30 36L42 24 44 12 52 20C70 22 76 44 72 60 70 68 70 72 70 78z"/>' + BASE2 + '<path class="line" d="M57 24C65 34 67 48 62 62"/><path class="line" d="M52 29C58 38 60 48 58 58"/>', f: '<circle cx="54" cy="34" r="2.8"/><circle cx="31" cy="41" r="2.2"/>' },
+    b: { s: '<path d="M50 11C63 21 67 33 60 44H40C33 33 37 21 50 11z"/><circle cx="50" cy="8" r="4"/><path d="M36 44h28v6H36z"/><path d="M41 50h18l5 28H36z"/>' + BASE2 + '<path class="line" d="M50 20v13M44 26h12"/><path class="line" d="M41 62q9 4 18 0"/>', f: '' },
+    q: { s: '<path d="M30 40 26 20 36 32 40 14 45 30 50 11 55 30 60 14 64 32 74 20 70 40z"/><circle cx="26" cy="18" r="3.5"/><circle cx="40" cy="12" r="3.5"/><circle cx="50" cy="9" r="3.5"/><circle cx="60" cy="12" r="3.5"/><circle cx="74" cy="18" r="3.5"/><path d="M32 40h36v6H32z"/><path d="M38 46h24l6 32H32z"/>' + BASE2 + '<path class="line" d="M36 56q14 5 28 0"/>', f: '' },
+    k: { s: '<path d="M46 3h8v7h6v8h-6v6h-8v-6h-6v-8h6z"/><path d="M33 44 35 30Q50 23 65 30L67 44z"/><path d="M32 44h36v6H32z"/><path d="M38 50h24l6 28H32z"/>' + BASE2 + '<path class="line" d="M50 26v16"/><path class="line" d="M36 62q14 5 28 0"/>', f: '' }
+  };
+  const BASE3 = '<ellipse cx="50" cy="86" rx="27" ry="8"/>';
+  const GLOSSY = {
+    p: { s: '<path d="M31 84C31 64 40 54 50 54S69 64 69 84z"/><circle cx="50" cy="36" r="16"/>' + BASE3, f: '' },
+    r: { s: '<path d="M31 84Q35 64 36 46H64Q65 64 69 84z"/><rect x="30" y="30" width="40" height="18" rx="6"/><circle cx="38" cy="26" r="7"/><circle cx="50" cy="23" r="7"/><circle cx="62" cy="26" r="7"/>' + BASE3, f: '' },
+    n: { s: '<path d="M30 84C28 66 38 56 44 49 36 49 30 45 30 39 30 31 40 23 48 17L51 8 58 18C74 22 79 42 72 58 70 70 72 78 72 84z"/>' + BASE3, f: '<circle cx="55" cy="34" r="3"/>' },
+    b: { s: '<path d="M33 84Q36 62 50 58 64 62 67 84z"/><ellipse cx="50" cy="36" rx="15" ry="21"/><ellipse cx="50" cy="58" rx="19" ry="5"/><circle cx="50" cy="10" r="5"/>' + BASE3 + '<path class="line" d="M54 26 46 40"/>', f: '' },
+    q: { s: '<path d="M30 84Q32 62 50 58 68 62 70 84z"/><path d="M28 28 36 50H64L72 28 61 38 50 22 39 38z"/><circle cx="28" cy="25" r="5"/><circle cx="50" cy="17" r="5"/><circle cx="72" cy="25" r="5"/><ellipse cx="50" cy="56" rx="19" ry="6"/>' + BASE3, f: '' },
+    k: { s: '<path d="M31 84C31 66 40 58 50 58S69 66 69 84z"/><circle cx="50" cy="44" r="17"/><path d="M45 3h10v8h8v9h-8v8H45v-8h-8v-9h8z"/>' + BASE3, f: '' }
+  };
+  const SETS = { classic: CLASSIC, royal: ROYAL, cat: CAT, glossy: GLOSSY };
   const NAMES = { k: 'King', q: 'Queen', r: 'Rook', b: 'Bishop', n: 'Knight', p: 'Pawn' };
   const MOVES = { k: 'One step any way', q: 'Slides any direction', r: 'Straight lines', b: 'Diagonals', n: 'Jumps in an L', p: 'Forward, captures diagonal' };
   let pieceStyle = 'classic', pieceColor = 'pink', boardTheme = 'blush';
   function pc(type, color, style, ps) {
     ps = ps || pieceStyle;
     const p = SETS[ps][type];
-    const shine = ps === 'glossy'
-      ? `<g class="shade" fill="url(#shade)" stroke="none">${p.s}</g><g class="gloss" fill="url(#gloss)" stroke="none">${p.s}</g>` : '';
-    return `<svg class="pc ${color}${ps === 'glossy' ? ' glossy' : ''}" viewBox="0 0 100 100" ${style ? `style="${style}"` : ''}><g class="shape">${p.s}</g>${shine}<g class="face">${p.f}</g></svg>`;
+    const sh = `<g class="shade" fill="url(#shade)" stroke="none">${p.s}</g>`;
+    const gl = `<g class="gloss" fill="url(#gloss)" stroke="none">${p.s}</g>`;
+    const shine = ps === 'glossy' ? sh + gl : ps === 'royal' ? sh : '';
+    return `<svg class="pc ${color}${ps === 'glossy' || ps === 'royal' ? ' glossy' : ''}" viewBox="0 0 100 100" ${style ? `style="${style}"` : ''}><g class="shape">${p.s}</g>${shine}<g class="face">${p.f}</g></svg>`;
   }
   const PCOLORS = {
     pink:     { n: 'Pink',     wf: '#fff5f9', ws: '#e07aa3', bf: '#f06fa0', bs: '#b83c73', bface: '#ffffff' },
-    green:    { n: 'Green',    wf: '#f3fff8', ws: '#4fae86', bf: '#57c796', bs: '#2d8a62', bface: '#ffffff' },
+    green:    { n: 'Mint',     wf: '#f3fff8', ws: '#4fae86', bf: '#57c796', bs: '#2d8a62', bface: '#ffffff' },
     lavender: { n: 'Lavender', wf: '#f8f4ff', ws: '#9b86d6', bf: '#a78ce6', bs: '#6a52b3', bface: '#ffffff' },
     blue:     { n: 'Sky',      wf: '#f2faff', ws: '#5aa2d6', bf: '#6cb4ec', bs: '#3a78ab', bface: '#ffffff' }
   };
@@ -89,7 +108,7 @@
   }
   function buildSettings() {
     const act = (a, b) => (a === b ? ' active' : '');
-    $('optStyle').innerHTML = [['classic', 'Classic'], ['cat', 'Cat'], ['glossy', 'Glossy']].map(([k, n]) =>
+    $('optStyle').innerHTML = [['classic', 'Classic'], ['royal', 'Royal'], ['cat', 'Cat'], ['glossy', 'Glossy']].map(([k, n]) =>
       `<button class="opt${act(pieceStyle, k)}" data-k="style" data-v="${k}">${pc('k', 'w', '', k)}<small>${n}</small></button>`).join('');
     $('optColor').innerHTML = Object.entries(PCOLORS).map(([k, c]) =>
       `<button class="opt${act(pieceColor, k)}" data-k="color" data-v="${k}"><span class="sw"><i style="background:${c.wf};border-color:${c.ws}"></i><i style="background:${c.bf};border-color:${c.bs}"></i></span><small>${c.n}</small></button>`).join('');
