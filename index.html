@@ -27,54 +27,59 @@
   <section id="home" class="screen active">
     <header class="nav">
       <span class="brand">Pink Checkmate</span>
-      <div class="navbtns"><button class="btn small ghost" data-settings>⚙ Settings</button><button class="btn small" data-go="modes">Play</button></div>
+      <div class="navbtns"><button class="btn small ghost" data-settings>⚙ Settings</button><button class="btn small" data-go="game">Play</button></div>
     </header>
 
     <div class="hero">
       <div class="hero-text">
         <h1>Pink Checkmate</h1>
-        <p>A soft pink chess game for two. Pick a mode, set the clock, and play a friend on the same screen.</p>
-        <button class="btn big" data-go="modes">Play now</button>
+        <p>A soft pink chess game for two. Pick a mode, set the clock, and play a friend or the computer.</p>
+        <button class="btn big" data-go="game">Play now</button>
       </div>
       <div class="hero-art" id="heroArt" aria-hidden="true"></div>
     </div>
 
     <div class="court">
       <h2>Meet the pieces</h2>
-      <p class="court-sub">Classic pieces by default. Switch to cat pieces and change colors anytime in Settings.</p>
+      <p class="court-sub">Tap a piece to see how it moves. Change the piece style and colors anytime in Settings.</p>
       <div id="legend" class="legend"></div>
     </div>
 
     <footer>Pink Checkmate · made with love</footer>
   </section>
 
-  <!-- 2. MODE SELECT -->
-  <section id="modes" class="screen">
-    <header class="nav">
-      <button class="btn small ghost" data-go="home">← Home</button>
-      <span class="brand">Pink Checkmate</span>
-      <button class="btn small ghost" data-settings>⚙ Settings</button>
-    </header>
-    <div class="modes-wrap">
-      <h2>Choose your mode</h2>
-      <p class="court-sub">The board opens right after you pick. Clocks start after White's first move.</p>
-      <div id="modeGrid" class="mode-grid"></div>
-    </div>
-  </section>
-
   <!-- 3. GAME (inside) -->
   <section id="game" class="screen">
     <header class="nav">
-      <button class="btn small ghost" id="menuBtn">← Modes</button>
+      <button class="btn small ghost" id="menuBtn">← Home</button>
       <span class="brand" id="modeLabel">Blitz</span>
-      <button class="btn small ghost" data-settings>⚙ Settings</button>
+      <span class="navbtns"><button class="btn small ghost" id="fsBtn">⛶ Full screen</button><button class="btn small ghost" data-settings>⚙ Settings</button></span>
     </header>
 
     <div class="play">
+      <aside class="setup panel">
+        <div class="seg" id="oppSeg">
+          <button class="active" data-opp="human">Two players</button>
+          <button data-opp="bot">Vs computer</button>
+        </div>
+        <h3>Game mode</h3>
+        <div id="modeList" class="mlist"></div>
+        <div id="botBox" hidden>
+          <h3>Opponent</h3>
+          <div id="botList" class="mlist"></div>
+          <h3>Play as</h3>
+          <div class="seg" id="sideSeg">
+            <button class="active" data-side="w">White</button>
+            <button data-side="b">Black</button>
+            <button data-side="r">Random</button>
+          </div>
+        </div>
+        <button class="btn" id="startBtn">Start game</button>
+      </aside>
       <div class="board-col">
         <div class="player" id="barBlack">
           <div class="avatar" id="avBlack"></div>
-          <div class="pname"><strong>Black</strong><small>Player 2</small></div>
+          <div class="pname"><strong id="nmBlack">Black</strong><small id="sbBlack">Player 2</small></div>
           <div class="clock" id="clockBlack">--:--</div>
         </div>
 
@@ -82,7 +87,7 @@
 
         <div class="player" id="barWhite">
           <div class="avatar" id="avWhite"></div>
-          <div class="pname"><strong>White</strong><small>Player 1</small></div>
+          <div class="pname"><strong id="nmWhite">White</strong><small id="sbWhite">Player 1</small></div>
           <div class="clock" id="clockWhite">--:--</div>
         </div>
       </div>
@@ -103,6 +108,16 @@
       </aside>
     </div>
   </section>
+
+  <!-- PIECE DEMO -->
+  <div class="overlay" id="demoModal">
+    <div class="modal">
+      <h2 id="demoTitle">Knight</h2>
+      <div class="demo-board" id="demoBoard"></div>
+      <p id="demoText"></p>
+      <div class="controls center"><button class="btn" id="demoClose">Close</button></div>
+    </div>
+  </div>
 
   <!-- SETTINGS -->
   <div class="overlay" id="setModal">
@@ -130,7 +145,6 @@
       <p id="overMsg"></p>
       <div class="controls center">
         <button class="btn" id="rematchBtn">Play again</button>
-        <button class="btn ghost" id="overMenuBtn">Change mode</button>
         <button class="btn ghost" id="overViewBtn">View board</button>
       </div>
     </div>
