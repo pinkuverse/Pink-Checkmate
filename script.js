@@ -77,16 +77,15 @@
     document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === id));
     window.scrollTo(0, 0);
   }
-  document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => show(b.dataset.go)));
+  document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => { b.dataset.go === 'game' ? enterGame() : show(b.dataset.go); }));
 
   function refreshArt() {
     $('heroArt').innerHTML =
       pc('k', 'w', 'width:42%;left:4%;top:6%') + pc('q', 'b', 'width:42%;right:2%;top:0%') +
       pc('n', 'w', 'width:34%;left:16%;bottom:0%') + pc('r', 'b', 'width:34%;right:12%;bottom:4%');
     $('legend').innerHTML = ['k', 'q', 'r', 'b', 'n', 'p'].map(t =>
-      `<div>${pc(t, 'w')}<strong>${NAMES[t]}</strong><small>${MOVES[t]}</small></div>`).join('');
-    $('modeGrid').innerHTML = MODES.map(m =>
-      `<button class="mode" data-mode="${m.id}">${pc(m.icon, 'w')}<strong>${m.name}</strong><div class="t">${m.label}</div><small>${m.desc}</small></button>`).join('');
+      `<button class="lg-card" data-t="${t}">${pc(t, 'w')}<strong>${NAMES[t]}</strong><small>${MOVES[t]}</small></button>`).join('');
+    buildSetup();
     $('avWhite').innerHTML = pc('k', 'w');
     $('avBlack').innerHTML = pc('k', 'b');
   }
@@ -131,50 +130,97 @@
   /* ---------- GAME ---------- */
   const game = new Chess();
   const files = 'abcdefgh';
-  let mode = MODES[1], times = { w: 0, b: 0 }, tick = null, lastTs = 0, over = false;
+  const BOTS = [
+    { id: 'kitty', name: 'Kitty', rating: 400, depth: 0, ms: 0, noise: 0, icon: 'p' },
+    { id: 'bunny', name: 'Bunny', rating: 800, depth: 1, ms: 400, noise: 90, icon: 'n' },
+    { id: 'mochi', name: 'Mochi', rating: 1100, depth: 2, ms: 900, noise: 30, icon: 'b' },
+    { id: 'blossom', name: 'Blossom', rating: 1400, depth: 3, ms: 1600, noise: 8, icon: 'r' },
+    { id: 'queenie', name: 'Queenie', rating: 1700, depth: 4, ms: 2200, noise: 0, icon: 'q' }
+  ];
+  let mode = MODES[1], opp = 'human', bot = BOTS[0], sidePick = 'w', humanColor = 'w', flip = false;
+  let thinking = false, botToken = 0, started = false;
+  let times = { w: 0, b: 0 }, tick = null, lastTs = 0, over = false;
   let selected = null, legal = [], lastMove = null;
 
-  $('modeGrid').addEventListener('click', e => { const b = e.target.closest('.mode'); if (b) start(MODES.find(m => m.id === b.dataset.mode)); });
+  function who(c) { return opp === 'bot' ? (c === humanColor ? 'You' : bot.name) : (c === 'w' ? 'White' : 'Black'); }
+  function wins(c) { const w = who(c); return w + (w === 'You' ? ' win.' : ' wins.'); }
 
-  function start(m) {
-    mode = m || mode;
-    game.reset(); selected = null; legal = []; lastMove = null; over = false;
-    times = { w: mode.time * 1000, b: mode.time * 1000 };
-    $('modeLabel').textContent = mode.name + (mode.time ? ' · ' + mode.label : '');
-    $('undoBtn').style.display = mode.time ? 'none' : '';
-    $('overModal').classList.remove('open');
+  /* ----- setup panel ----- */
+  function buildSetup() {
+    $('modeList').innerHTML = MODES.map(m =>
+      `<button class="mopt${m.id === mode.id ? ' active' : ''}" data-mode="${m.id}">${pc(m.icon, 'w')}<span><b>${m.name}</b><small>${m.label}</small></span></button>`).join('');
+    $('botList').innerHTML = BOTS.map(x =>
+      `<button class="mopt${x.id === bot.id ? ' active' : ''}" data-bot="${x.id}">${pc(x.icon, 'b')}<span><b>${x.name}</b><small>Computer</small></span><span class="rt">${x.rating}</span></button>`).join('');
+    document.querySelectorAll('#oppSeg button').forEach(b => b.classList.toggle('active', b.dataset.opp === opp));
+    document.querySelectorAll('#sideSeg button').forEach(b => b.classList.toggle('active', b.dataset.side === sidePick));
+    $('botBox').hidden = opp !== 'bot';
+  }
+  document.querySelector('.setup').addEventListener('click', e => {
+    const t = e.target.closest('button'); if (!t) return;
+    if (t.id === 'startBtn') { started = true; startGame(); return; }
+    if (t.dataset.mode) mode = MODES.find(m => m.id === t.dataset.mode);
+    else if (t.dataset.bot) bot = BOTS.find(x => x.id === t.dataset.bot);
+    else if (t.dataset.opp) opp = t.dataset.opp;
+    else if (t.dataset.side) sidePick = t.dataset.side;
+    else return;
+    buildSetup();
+    if (!game.history().length || over) { started = true; startGame(); }
+  });
+
+  function enterGame() {
     show('game');
-    runClock();
-    render();
+    if (!started || over) { started = true; startGame(); } else render();
   }
 
+  function setNames() {
+    let w = ['White', 'Player 1'], k = ['Black', 'Player 2'];
+    if (opp === 'bot') {
+      const me = ['You', 'Player'], cpu = [bot.name, 'Computer · ' + bot.rating];
+      w = humanColor === 'w' ? me : cpu; k = humanColor === 'w' ? cpu : me;
+    }
+    $('nmWhite').textContent = w[0]; $('sbWhite').textContent = w[1];
+    $('nmBlack').textContent = k[0]; $('sbBlack').textContent = k[1];
+  }
+
+  function startGame() {
+    botToken++; thinking = false;
+    game.reset(); selected = null; legal = []; lastMove = null; over = false;
+    humanColor = opp === 'bot' ? (sidePick === 'r' ? (Math.random() < 0.5 ? 'w' : 'b') : sidePick) : 'w';
+    flip = opp === 'bot' && humanColor === 'b';
+    times = { w: mode.time * 1000, b: mode.time * 1000 };
+    $('modeLabel').textContent = mode.name + (mode.time ? ' · ' + mode.label : '') + (opp === 'bot' ? ' · vs ' + bot.name : '');
+    $('undoBtn').style.display = mode.time ? 'none' : '';
+    document.querySelector('.board-col').classList.toggle('flip', flip);
+    $('overModal').classList.remove('open'); $('promoModal').classList.remove('open');
+    setNames(); buildSetup(); runClock(); render(); maybeBot();
+  }
+
+  /* ----- clocks ----- */
   function runClock() {
     clearInterval(tick);
     if (!mode.time) return;
     lastTs = Date.now();
     tick = setInterval(() => {
       const now = Date.now(), dt = now - lastTs; lastTs = now;
-      if (over || game.history().length === 0) return;
+      if (over || !$('game').classList.contains('active') || game.history().length === 0) return;
       const t = game.turn();
       times[t] -= dt;
       if (times[t] <= 0) { times[t] = 0; timeout(t); }
       renderClocks();
     }, 100);
   }
-
-  function lonely(color) { // opponent cannot mate -> draw on timeout
+  function lonely(color) {
     return game.board().flat().filter(p => p && p.color === color && p.type !== 'k').length === 0;
   }
   function timeout(loser) {
     const winner = loser === 'w' ? 'b' : 'w';
     if (lonely(winner)) finish('Draw', 'Time ran out, but there is not enough material to checkmate.');
-    else finish('Time out', (winner === 'w' ? 'White' : 'Black') + ' wins on time.');
+    else finish('Time out', wins(winner));
   }
-
   function fmt(ms) {
     if (!mode.time) return '∞';
-    const s = Math.ceil(ms / 1000);
     if (ms < 10000) return (Math.max(ms, 0) / 1000).toFixed(1);
+    const s = Math.ceil(ms / 1000);
     return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
   }
   function renderClocks() {
@@ -185,10 +231,12 @@
     });
   }
 
+  /* ----- board ----- */
   function render() {
     const b = $('board'), board = game.board(), chk = game.in_check();
     b.innerHTML = '';
-    for (let r = 0; r < 8; r++) for (let c = 0; c < 8; c++) {
+    for (let i = 0; i < 8; i++) for (let j = 0; j < 8; j++) {
+      const r = flip ? 7 - i : i, c = flip ? 7 - j : j;
       const sq = files[c] + (8 - r), p = board[r][c], el = document.createElement('div');
       el.className = 'sq ' + ((r + c) % 2 ? 'd' : 'l');
       if (sq === selected) el.classList.add('sel');
@@ -197,8 +245,8 @@
       if (h) { el.classList.add('hint'); if (p || h.flags.includes('e')) el.classList.add('cap'); }
       if (chk && p && p.type === 'k' && p.color === game.turn()) el.classList.add('chk');
       if (p) el.insertAdjacentHTML('beforeend', pc(p.type, p.color === 'w' ? 'w' : 'b'));
-      if (c === 0) el.insertAdjacentHTML('beforeend', `<span class="co" style="top:2px;left:3px">${8 - r}</span>`);
-      if (r === 7) el.insertAdjacentHTML('beforeend', `<span class="co" style="bottom:1px;right:3px">${files[c]}</span>`);
+      if (j === 0) el.insertAdjacentHTML('beforeend', `<span class="co" style="top:2px;left:3px">${8 - r}</span>`);
+      if (i === 7) el.insertAdjacentHTML('beforeend', `<span class="co" style="bottom:1px;right:3px">${files[c]}</span>`);
       el.addEventListener('click', () => onSquare(sq));
       b.appendChild(el);
     }
@@ -206,7 +254,8 @@
   }
 
   function onSquare(sq) {
-    if (over) return;
+    if (over || thinking) return;
+    if (opp === 'bot' && game.turn() !== humanColor) return;
     const mv = legal.find(m => m.to === sq);
     if (selected && mv) { mv.flags.includes('p') ? askPromo(mv.from, mv.to) : play(mv.from, mv.to); return; }
     const p = game.get(sq);
@@ -218,14 +267,18 @@
   function play(from, to, promo) {
     const mover = game.turn();
     const m = game.move({ from, to, promotion: promo || 'q' });
-    if (!m) return;
+    if (m) after(m, mover);
+  }
+
+  function after(m, mover) {
     if (mode.time && game.history().length > 1) times[mover] += mode.inc * 1000;
     lastMove = { from: m.from, to: m.to }; selected = null; legal = [];
     lastTs = Date.now();
     render();
-    if (game.in_checkmate()) finish('Checkmate', (mover === 'w' ? 'White' : 'Black') + ' wins.');
+    if (game.in_checkmate()) finish('Checkmate', wins(mover));
     else if (game.in_stalemate()) finish('Stalemate', 'No legal moves. It is a draw.');
     else if (game.in_draw()) finish('Draw', 'The game is a draw.');
+    else maybeBot();
   }
 
   function askPromo(from, to) {
@@ -242,7 +295,7 @@
   }
 
   function finish(title, msg) {
-    over = true; clearInterval(tick);
+    over = true; thinking = false; botToken++; clearInterval(tick);
     $('overTitle').textContent = title; $('overMsg').textContent = msg;
     $('overModal').classList.add('open');
     renderClocks(); info();
@@ -252,11 +305,14 @@
     const t = game.turn();
     $('barWhite').classList.toggle('turn', t === 'w' && !over);
     $('barBlack').classList.toggle('turn', t === 'b' && !over);
-    let s = (t === 'w' ? "White's" : "Black's") + ' turn';
-    if (game.in_check()) s += ' · check!';
+    let s;
     if (over) s = $('overTitle').textContent + ' · ' + $('overMsg').textContent;
+    else if (opp === 'bot') s = t === humanColor ? 'Your turn' : bot.name + ' is thinking...';
+    else s = (t === 'w' ? "White's" : "Black's") + ' turn';
+    if (!over && game.in_check()) s += ' · check!';
     $('status').textContent = s;
     const hist = game.history(), h = $('history');
+    $('startBtn').textContent = hist.length && !over ? 'Start new game' : 'Start game';
     if (!hist.length) { h.innerHTML = '<p class="empty">No moves yet. White starts.</p>'; return; }
     h.innerHTML = '';
     for (let i = 0; i < hist.length; i += 2)
@@ -264,22 +320,152 @@
     h.scrollTop = h.scrollHeight;
   }
 
+  /* ----- computer opponent (built-in, runs in your browser) ----- */
+  const VAL = { p: 100, n: 320, b: 330, r: 500, q: 900, k: 0 };
+  let deadline = 0, aborted = false;
+  function evalPos() {
+    const b = game.board(); let s = 0;
+    for (let r = 0; r < 8; r++) for (let c = 0; c < 8; c++) {
+      const p = b[r][c]; if (!p) continue;
+      let v = VAL[p.type];
+      const cen = 3 - Math.max(Math.abs(c - 3.5), Math.abs(r - 3.5)) + 0.5;
+      if (p.type === 'p') v += (p.color === 'w' ? 6 - r : r - 1) * 6 + cen * 2;
+      else if (p.type !== 'k' && p.type !== 'r') v += cen * 6;
+      s += p.color === 'w' ? v : -v;
+    }
+    return game.turn() === 'w' ? s : -s;
+  }
+  const rank = m => (m.includes('x') ? 10 : 0) + (m.includes('=') ? 8 : 0) + (m.includes('+') ? 5 : 0);
+  function search(d, alpha, beta, ply) {
+    if (Date.now() > deadline) { aborted = true; return 0; }
+    const ms = game.moves();
+    if (!ms.length) return game.in_check() ? -30000 + ply : 0;
+    if (d === 0) return evalPos();
+    ms.sort((a, b) => rank(b) - rank(a));
+    let best = -Infinity;
+    for (const m of ms) {
+      game.move(m);
+      const v = -search(d - 1, -beta, -alpha, ply + 1);
+      game.undo();
+      if (aborted) return 0;
+      if (v > best) best = v;
+      if (v > alpha) alpha = v;
+      if (alpha >= beta) break;
+    }
+    return best;
+  }
+  function botMove(lv) {
+    const ms = game.moves();
+    if (!ms.length) return null;
+    if (lv.depth === 0) {
+      const caps = ms.filter(m => m.includes('x'));
+      const pool = caps.length && Math.random() < 0.4 ? caps : ms;
+      return pool[Math.floor(Math.random() * pool.length)];
+    }
+    deadline = Date.now() + lv.ms; aborted = false;
+    let best = ms[Math.floor(Math.random() * ms.length)];
+    const ord = [...ms].sort((a, b) => rank(b) - rank(a));
+    for (let d = 1; d <= lv.depth; d++) {
+      let bestV = -Infinity, bm = null, a = -Infinity;
+      for (const m of ord) {
+        game.move(m);
+        let v = -search(d - 1, -Infinity, -a, 1);
+        game.undo();
+        if (aborted) break;
+        v += (Math.random() - 0.5) * lv.noise;
+        if (v > bestV) { bestV = v; bm = m; }
+        if (!lv.noise && v > a) a = v;
+      }
+      if (aborted || !bm) break;
+      best = bm;
+    }
+    return best;
+  }
+  function maybeBot() {
+    if (opp !== 'bot' || over || game.turn() === humanColor) return;
+    thinking = true;
+    const tok = ++botToken;
+    info();
+    setTimeout(() => {
+      if (tok !== botToken || over) return;
+      const san = botMove(bot);
+      if (tok !== botToken || over) return;
+      thinking = false;
+      const mover = game.turn();
+      const m = san && game.move(san);
+      if (m) after(m, mover);
+    }, 450);
+  }
+
+  /* ----- buttons ----- */
   $('undoBtn').onclick = () => {
-    if (over) return;
-    game.undo(); selected = null; legal = [];
+    if (over || thinking) return;
+    game.undo();
+    if (opp === 'bot' && game.turn() !== humanColor && game.history().length) game.undo();
+    selected = null; legal = [];
     const hv = game.history({ verbose: true }); lastMove = hv.length ? hv[hv.length - 1] : null;
-    render();
+    render(); maybeBot();
   };
   $('resignBtn').onclick = () => {
     if (over) return;
-    if (confirm((game.turn() === 'w' ? 'White' : 'Black') + ' resigns?'))
-      finish('Resigned', (game.turn() === 'w' ? 'Black' : 'White') + ' wins.');
+    const loser = opp === 'bot' ? humanColor : game.turn();
+    if (confirm((opp === 'bot' ? 'Resign this game?' : (loser === 'w' ? 'White' : 'Black') + ' resigns?')))
+      finish('Resigned', wins(loser === 'w' ? 'b' : 'w'));
   };
-  $('restartBtn').onclick = () => start(mode);
-  $('rematchBtn').onclick = () => start(mode);
-  $('menuBtn').onclick = () => { clearInterval(tick); over = true; show('modes'); };
-  $('overMenuBtn').onclick = () => { $('overModal').classList.remove('open'); show('modes'); };
+  $('restartBtn').onclick = () => { started = true; startGame(); };
+  $('rematchBtn').onclick = () => { started = true; startGame(); };
+  $('menuBtn').onclick = () => show('home');
   $('overViewBtn').onclick = () => $('overModal').classList.remove('open');
+
+  /* ----- full screen ----- */
+  const fsBtn = $('fsBtn'), root = document.documentElement;
+  const fsOn = () => document.fullscreenElement || document.webkitFullscreenElement;
+  if (!(document.fullscreenEnabled || document.webkitFullscreenEnabled)) fsBtn.style.display = 'none';
+  fsBtn.onclick = () => {
+    if (fsOn()) (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+    else (root.requestFullscreen || root.webkitRequestFullscreen).call(root);
+  };
+  ['fullscreenchange', 'webkitfullscreenchange'].forEach(ev =>
+    document.addEventListener(ev, () => { fsBtn.textContent = fsOn() ? '⛶ Exit full screen' : '⛶ Full screen'; }));
+
+  /* ----- animated piece demos (Meet the pieces) ----- */
+  const DEMO = {
+    k: { from: [4, 4], to: [[3, 4], [3, 5], [4, 5], [4, 4]], t: 'The king steps one square in any direction.' },
+    q: { from: [4, 3], to: [[1, 3], [1, 6], [4, 6], [7, 3], [4, 3]], t: 'The queen slides any distance in any direction.' },
+    r: { from: [4, 4], to: [[4, 0], [1, 0], [1, 4], [4, 4]], t: 'The rook slides in straight lines.' },
+    b: { from: [6, 2], to: [[3, 5], [1, 3], [4, 0], [6, 2]], t: 'The bishop slides along diagonals.' },
+    n: { from: [5, 1], to: [[3, 2], [1, 3], [2, 5], [4, 6], [5, 1]], t: 'The knight jumps in an L shape and can hop over other pieces.' },
+    p: { from: [6, 4], to: [[4, 4], [3, 4], [6, 4]], t: 'The pawn moves forward, and captures one step diagonally.' }
+  };
+  let demoTimer = null;
+  function openDemo(t) {
+    const d = DEMO[t], b = $('demoBoard');
+    clearTimeout(demoTimer);
+    b.innerHTML = '';
+    const stops = new Set(d.to.map(m => m[0] * 8 + m[1])); stops.delete(d.from[0] * 8 + d.from[1]);
+    for (let r = 0; r < 8; r++) for (let c = 0; c < 8; c++) {
+      const sq = document.createElement('div');
+      sq.className = ((r + c) % 2 ? 'dd' : 'dl') + (stops.has(r * 8 + c) ? ' tgt' : '');
+      b.appendChild(sq);
+    }
+    const p = document.createElement('div');
+    p.className = 'dp'; p.innerHTML = pc(t, 'w');
+    p.style.top = d.from[0] * 12.5 + '%'; p.style.left = d.from[1] * 12.5 + '%';
+    b.appendChild(p);
+    $('demoTitle').textContent = NAMES[t]; $('demoText').textContent = d.t;
+    $('demoModal').classList.add('open');
+    let i = 0;
+    const step = () => {
+      const m = d.to[i % d.to.length]; i++;
+      p.style.top = m[0] * 12.5 + '%'; p.style.left = m[1] * 12.5 + '%';
+      demoTimer = setTimeout(step, 1000);
+    };
+    demoTimer = setTimeout(step, 700);
+  }
+  function closeDemo() { clearTimeout(demoTimer); $('demoModal').classList.remove('open'); }
+  $('legend').addEventListener('click', e => { const b = e.target.closest('.lg-card'); if (b) openDemo(b.dataset.t); });
+  $('demoClose').onclick = closeDemo;
+  $('demoModal').addEventListener('click', e => { if (e.target.id === 'demoModal') closeDemo(); });
 
   loadSettings(); applyTheme(); refreshArt();
 })();
