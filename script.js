@@ -132,10 +132,10 @@
   const files = 'abcdefgh';
   const BOTS = [
     { id: 'kitty', name: 'Kitty', rating: 400, depth: 0, ms: 0, noise: 0, icon: 'p' },
-    { id: 'bunny', name: 'Bunny', rating: 800, depth: 1, ms: 400, noise: 90, icon: 'n' },
-    { id: 'mochi', name: 'Mochi', rating: 1100, depth: 2, ms: 900, noise: 30, icon: 'b' },
-    { id: 'blossom', name: 'Blossom', rating: 1400, depth: 3, ms: 1600, noise: 8, icon: 'r' },
-    { id: 'queenie', name: 'Queenie', rating: 1700, depth: 4, ms: 2200, noise: 0, icon: 'q' }
+    { id: 'bunny', name: 'Bunny', rating: 800, depth: 1, ms: 600, noise: 60, icon: 'n' },
+    { id: 'mochi', name: 'Mochi', rating: 1100, depth: 2, ms: 1200, noise: 25, icon: 'b' },
+    { id: 'blossom', name: 'Blossom', rating: 1400, depth: 3, ms: 2000, noise: 0, icon: 'r' },
+    { id: 'queenie', name: 'Queenie', rating: 1700, depth: 4, ms: 2800, noise: 0, icon: 'q' }
   ];
   let mode = MODES[1], opp = 'human', bot = BOTS[0], sidePick = 'w', humanColor = 'w', flip = false;
   let thinking = false, botToken = 0, started = false;
@@ -336,11 +336,27 @@
     return game.turn() === 'w' ? s : -s;
   }
   const rank = m => (m.includes('x') ? 10 : 0) + (m.includes('=') ? 8 : 0) + (m.includes('+') ? 5 : 0);
+  function qsearch(alpha, beta, qd) {
+    if (Date.now() > deadline) { aborted = true; return 0; }
+    const stand = evalPos();
+    if (stand >= beta || qd === 0) return stand;
+    if (stand > alpha) alpha = stand;
+    const caps = game.moves().filter(m => m.includes('x') || m.includes('=')).sort((a, b) => rank(b) - rank(a));
+    for (const m of caps) {
+      game.move(m);
+      const v = -qsearch(-beta, -alpha, qd - 1);
+      game.undo();
+      if (aborted) return 0;
+      if (v >= beta) return v;
+      if (v > alpha) alpha = v;
+    }
+    return alpha;
+  }
   function search(d, alpha, beta, ply) {
     if (Date.now() > deadline) { aborted = true; return 0; }
     const ms = game.moves();
     if (!ms.length) return game.in_check() ? -30000 + ply : 0;
-    if (d === 0) return evalPos();
+    if (d === 0) return qsearch(alpha, beta, 4);
     ms.sort((a, b) => rank(b) - rank(a));
     let best = -Infinity;
     for (const m of ms) {
