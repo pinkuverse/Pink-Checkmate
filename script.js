@@ -189,9 +189,9 @@
     flip = opp === 'bot' && humanColor === 'b';
     times = { w: mode.time * 1000, b: mode.time * 1000 };
     $('modeLabel').textContent = mode.name + (mode.time ? ' · ' + mode.label : '') + (opp === 'bot' ? ' · vs ' + bot.name : '');
-    $('undoBtn').style.display = mode.time ? 'none' : '';
+    $('undoBtn').textContent = opp === 'bot' ? 'Undo' : 'Takeback';
     document.querySelector('.board-col').classList.toggle('flip', flip);
-    $('overModal').classList.remove('open'); $('promoModal').classList.remove('open');
+    stopConfetti(); $('overModal').classList.remove('open'); $('promoModal').classList.remove('open'); $('tbModal').classList.remove('open');
     setNames(); buildSetup(); runClock(); render(); maybeBot();
   }
 
@@ -202,7 +202,7 @@
     lastTs = Date.now();
     tick = setInterval(() => {
       const now = Date.now(), dt = now - lastTs; lastTs = now;
-      if (over || !$('game').classList.contains('active') || game.history().length === 0) return;
+      if (over || !$('game').classList.contains('active') || $('tbModal').classList.contains('open') || game.history().length === 0) return;
       const t = game.turn();
       times[t] -= dt;
       if (times[t] <= 0) { times[t] = 0; timeout(t); }
@@ -215,7 +215,7 @@
   function timeout(loser) {
     const winner = loser === 'w' ? 'b' : 'w';
     if (lonely(winner)) finish('Draw', 'Time ran out, but there is not enough material to checkmate.');
-    else finish('Time out', wins(winner));
+    else finish('Time out', wins(winner), winner);
   }
   function fmt(ms) {
     if (!mode.time) return '∞';
@@ -275,7 +275,7 @@
     lastMove = { from: m.from, to: m.to }; selected = null; legal = [];
     lastTs = Date.now();
     render();
-    if (game.in_checkmate()) finish('Checkmate', wins(mover));
+    if (game.in_checkmate()) finish('Checkmate', wins(mover), mover);
     else if (game.in_stalemate()) finish('Stalemate', 'No legal moves. It is a draw.');
     else if (game.in_draw()) finish('Draw', 'The game is a draw.');
     else maybeBot();
@@ -294,10 +294,15 @@
     $('promoModal').classList.add('open');
   }
 
-  function finish(title, msg) {
+  function finish(title, msg, winner) {
     over = true; thinking = false; botToken++; clearInterval(tick);
     $('overTitle').textContent = title; $('overMsg').textContent = msg;
+    const win = !!winner && (opp !== 'bot' || winner === humanColor);
+    $('overBox').classList.toggle('celebrate', win);
+    $('winCat').hidden = !win; $('overHead').hidden = !win;
+    if (win) $('overHead').textContent = opp === 'bot' ? 'You win!' : (winner === 'w' ? 'White' : 'Black') + ' wins!';
     $('overModal').classList.add('open');
+    if (win) celebrate(); else stopConfetti();
     renderClocks(); info();
   }
 
@@ -340,24 +345,78 @@
   }
 
   /* ----- buttons ----- */
-  $('undoBtn').onclick = () => {
-    if (over || thinking) return;
-    game.undo();
-    if (opp === 'bot' && game.turn() !== humanColor && game.history().length) game.undo();
+  function takeBack(plies) {
+    for (let i = 0; i < plies && game.history().length; i++) game.undo();
     selected = null; legal = [];
     const hv = game.history({ verbose: true }); lastMove = hv.length ? hv[hv.length - 1] : null;
+    lastTs = Date.now();
     render(); maybeBot();
+  }
+  $('undoBtn').onclick = () => {
+    if (over || thinking || !game.history().length) return;
+    if (opp === 'bot') { // against the computer: undo freely (takes back the computer's reply and your move)
+      if (game.history().length >= 2) takeBack(2);
+      return;
+    }
+    // two players on one screen: the other player has to agree
+    const mover = game.turn() === 'w' ? 'Black' : 'White', other = game.turn() === 'w' ? 'White' : 'Black';
+    $('tbText').textContent = mover + ' would like to take back their last move. ' + other + ', do you accept?';
+    $('tbModal').classList.add('open');
   };
+  $('tbYes').onclick = () => { $('tbModal').classList.remove('open'); takeBack(1); };
+  $('tbNo').onclick = () => { $('tbModal').classList.remove('open'); };
   $('resignBtn').onclick = () => {
     if (over) return;
     const loser = opp === 'bot' ? humanColor : game.turn();
     if (confirm((opp === 'bot' ? 'Resign this game?' : (loser === 'w' ? 'White' : 'Black') + ' resigns?')))
-      finish('Resigned', wins(loser === 'w' ? 'b' : 'w'));
+      finish('Resigned', wins(loser === 'w' ? 'b' : 'w'), loser === 'w' ? 'b' : 'w');
   };
   $('restartBtn').onclick = () => { started = true; startGame(); };
   $('rematchBtn').onclick = () => { started = true; startGame(); };
   $('menuBtn').onclick = () => show('home');
-  $('overViewBtn').onclick = () => $('overModal').classList.remove('open');
+  $('overViewBtn').onclick = () => { stopConfetti(); $('overModal').classList.remove('open'); };
+
+  /* ----- win celebration: pink confetti ----- */
+  const cv = $('confetti'), cx = cv.getContext('2d');
+  const CONFETTI = ['#f28db7', '#e0679b', '#ffb3d1', '#ffd6e7', '#ffffff', '#ff8fb0', '#f9a8c9'];
+  let parts = [], raf = null, cTimers = [];
+  function sizeCanvas() { const d = window.devicePixelRatio || 1; cv.width = innerWidth * d; cv.height = innerHeight * d; cx.setTransform(d, 0, 0, d, 0, 0); }
+  window.addEventListener('resize', () => { if (cv.style.display === 'block') sizeCanvas(); });
+  function burst(x, y, n, base, spread, power) {
+    for (let i = 0; i < n; i++) {
+      const a = base + (Math.random() - 0.5) * spread, v = power * (0.4 + Math.random() * 0.8), q = Math.random();
+      parts.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, r: 4 + Math.random() * 5, rot: Math.random() * 6.28, vr: (Math.random() - 0.5) * 0.4, c: CONFETTI[Math.floor(Math.random() * CONFETTI.length)], shape: q < 0.22 ? 'circle' : q < 0.4 ? 'heart' : 'rect', life: 0 });
+    }
+  }
+  function frame() {
+    cx.clearRect(0, 0, innerWidth, innerHeight);
+    parts = parts.filter(p => p.y < innerHeight + 30 && p.life < 340);
+    for (const p of parts) {
+      p.vy += 0.2; p.vx *= 0.985; p.vy *= 0.99; p.x += p.vx; p.y += p.vy; p.rot += p.vr; p.life++;
+      cx.save(); cx.translate(p.x, p.y); cx.rotate(p.rot); cx.fillStyle = p.c; cx.globalAlpha = Math.min(1, (340 - p.life) / 50);
+      if (p.shape === 'circle') { cx.beginPath(); cx.arc(0, 0, p.r * 0.6, 0, 6.28); cx.fill(); }
+      else if (p.shape === 'heart') { const s = p.r * 0.55; cx.beginPath(); cx.moveTo(0, s); cx.bezierCurveTo(-s * 2, -s * 0.4, -s, -s * 2, 0, -s * 0.8); cx.bezierCurveTo(s, -s * 2, s * 2, -s * 0.4, 0, s); cx.fill(); }
+      else cx.fillRect(-p.r, -p.r * 0.5, p.r * 2, p.r);
+      cx.restore();
+    }
+    if (parts.length || cTimers.length) raf = requestAnimationFrame(frame); else { raf = null; cv.style.display = 'none'; }
+  }
+  function stopConfetti() {
+    cTimers.forEach(clearTimeout); cTimers = []; parts = [];
+    if (raf) cancelAnimationFrame(raf); raf = null;
+    cv.style.display = 'none';
+  }
+  function celebrate() {
+    if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    stopConfetti(); sizeCanvas(); cv.style.display = 'block';
+    const w = innerWidth, h = innerHeight, up = -Math.PI / 2;
+    const sides = () => { burst(w * 0.1, h * 0.95, 70, up + 0.45, 1.0, 17); burst(w * 0.9, h * 0.95, 70, up - 0.45, 1.0, 17); };
+    const pop = () => burst(w / 2, h * 0.33, 80, 0, 6.28, 9);
+    sides(); pop();
+    cTimers.push(setTimeout(pop, 650), setTimeout(sides, 1100), setTimeout(pop, 1700));
+    cTimers.push(setTimeout(() => { cTimers = []; }, 2000));
+    raf = requestAnimationFrame(frame);
+  }
 
   /* ----- full screen ----- */
   const fsBtn = $('fsBtn'), root = document.documentElement;
