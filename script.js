@@ -131,11 +131,11 @@
   const game = new Chess();
   const files = 'abcdefgh';
   const BOTS = [
-    { id: 'kitty', name: 'Kitty', rating: 400, depth: 0, ms: 0, noise: 0, icon: 'p' },
-    { id: 'bunny', name: 'Bunny', rating: 800, depth: 1, ms: 600, noise: 60, icon: 'n' },
-    { id: 'mochi', name: 'Mochi', rating: 1100, depth: 2, ms: 1200, noise: 25, icon: 'b' },
-    { id: 'blossom', name: 'Blossom', rating: 1400, depth: 3, ms: 2000, noise: 0, icon: 'r' },
-    { id: 'queenie', name: 'Queenie', rating: 1700, depth: 4, ms: 2800, noise: 0, icon: 'q' }
+    { id: 'kitty', name: 'Kitty', rating: 400, tag: 'Beginner', icon: 'p' },
+    { id: 'bunny', name: 'Bunny', rating: 800, tag: 'Developing beginner', icon: 'n' },
+    { id: 'mochi', name: 'Mochi', rating: 1100, tag: 'Intermediate', icon: 'b' },
+    { id: 'blossom', name: 'Blossom', rating: 1400, tag: 'Advanced intermediate', icon: 'r' },
+    { id: 'queenie', name: 'Queenie', rating: 1700, tag: 'Advanced', icon: 'q' }
   ];
   let mode = MODES[1], opp = 'human', bot = BOTS[0], sidePick = 'w', humanColor = 'w', flip = false;
   let thinking = false, botToken = 0, started = false;
@@ -150,7 +150,7 @@
     $('modeList').innerHTML = MODES.map(m =>
       `<button class="mopt${m.id === mode.id ? ' active' : ''}" data-mode="${m.id}">${pc(m.icon, 'w')}<span><b>${m.name}</b><small>${m.label}</small></span></button>`).join('');
     $('botList').innerHTML = BOTS.map(x =>
-      `<button class="mopt${x.id === bot.id ? ' active' : ''}" data-bot="${x.id}">${pc(x.icon, 'b')}<span><b>${x.name}</b><small>Computer</small></span><span class="rt">${x.rating}</span></button>`).join('');
+      `<button class="mopt${x.id === bot.id ? ' active' : ''}" data-bot="${x.id}">${pc(x.icon, 'b')}<span><b>${x.name}</b><small>${x.tag}</small></span><span class="rt">${x.rating}</span></button>`).join('');
     document.querySelectorAll('#oppSeg button').forEach(b => b.classList.toggle('active', b.dataset.opp === opp));
     document.querySelectorAll('#sideSeg button').forEach(b => b.classList.toggle('active', b.dataset.side === sidePick));
     $('botBox').hidden = opp !== 'bot';
@@ -320,83 +320,7 @@
     h.scrollTop = h.scrollHeight;
   }
 
-  /* ----- computer opponent (built-in, runs in your browser) ----- */
-  const VAL = { p: 100, n: 320, b: 330, r: 500, q: 900, k: 0 };
-  let deadline = 0, aborted = false;
-  function evalPos() {
-    const b = game.board(); let s = 0;
-    for (let r = 0; r < 8; r++) for (let c = 0; c < 8; c++) {
-      const p = b[r][c]; if (!p) continue;
-      let v = VAL[p.type];
-      const cen = 3 - Math.max(Math.abs(c - 3.5), Math.abs(r - 3.5)) + 0.5;
-      if (p.type === 'p') v += (p.color === 'w' ? 6 - r : r - 1) * 6 + cen * 2;
-      else if (p.type !== 'k' && p.type !== 'r') v += cen * 6;
-      s += p.color === 'w' ? v : -v;
-    }
-    return game.turn() === 'w' ? s : -s;
-  }
-  const rank = m => (m.includes('x') ? 10 : 0) + (m.includes('=') ? 8 : 0) + (m.includes('+') ? 5 : 0);
-  function qsearch(alpha, beta, qd) {
-    if (Date.now() > deadline) { aborted = true; return 0; }
-    const stand = evalPos();
-    if (stand >= beta || qd === 0) return stand;
-    if (stand > alpha) alpha = stand;
-    const caps = game.moves().filter(m => m.includes('x') || m.includes('=')).sort((a, b) => rank(b) - rank(a));
-    for (const m of caps) {
-      game.move(m);
-      const v = -qsearch(-beta, -alpha, qd - 1);
-      game.undo();
-      if (aborted) return 0;
-      if (v >= beta) return v;
-      if (v > alpha) alpha = v;
-    }
-    return alpha;
-  }
-  function search(d, alpha, beta, ply) {
-    if (Date.now() > deadline) { aborted = true; return 0; }
-    const ms = game.moves();
-    if (!ms.length) return game.in_check() ? -30000 + ply : 0;
-    if (d === 0) return qsearch(alpha, beta, 4);
-    ms.sort((a, b) => rank(b) - rank(a));
-    let best = -Infinity;
-    for (const m of ms) {
-      game.move(m);
-      const v = -search(d - 1, -beta, -alpha, ply + 1);
-      game.undo();
-      if (aborted) return 0;
-      if (v > best) best = v;
-      if (v > alpha) alpha = v;
-      if (alpha >= beta) break;
-    }
-    return best;
-  }
-  function botMove(lv) {
-    const ms = game.moves();
-    if (!ms.length) return null;
-    if (lv.depth === 0) {
-      const caps = ms.filter(m => m.includes('x'));
-      const pool = caps.length && Math.random() < 0.4 ? caps : ms;
-      return pool[Math.floor(Math.random() * pool.length)];
-    }
-    deadline = Date.now() + lv.ms; aborted = false;
-    let best = ms[Math.floor(Math.random() * ms.length)];
-    const ord = [...ms].sort((a, b) => rank(b) - rank(a));
-    for (let d = 1; d <= lv.depth; d++) {
-      let bestV = -Infinity, bm = null, a = -Infinity;
-      for (const m of ord) {
-        game.move(m);
-        let v = -search(d - 1, -Infinity, -a, 1);
-        game.undo();
-        if (aborted) break;
-        v += (Math.random() - 0.5) * lv.noise;
-        if (v > bestV) { bestV = v; bm = m; }
-        if (!lv.noise && v > a) a = v;
-      }
-      if (aborted || !bm) break;
-      best = bm;
-    }
-    return best;
-  }
+  /* ----- computer opponent: see bots.js (custom engine, no Stockfish) ----- */
   function maybeBot() {
     if (opp !== 'bot' || over || game.turn() === humanColor) return;
     thinking = true;
@@ -404,13 +328,15 @@
     info();
     setTimeout(() => {
       if (tok !== botToken || over) return;
-      const san = botMove(bot);
+      let mv = null;
+      try { mv = PinkBots.choose(game.fen(), bot.rating); } catch (e) { mv = null; }
       if (tok !== botToken || over) return;
       thinking = false;
       const mover = game.turn();
-      const m = san && game.move(san);
+      let m = mv && game.move({ from: mv.from, to: mv.to, promotion: mv.promotion || 'q' });
+      if (!m) { const all = game.moves(); m = all.length ? game.move(all[Math.floor(Math.random() * all.length)]) : null; }
       if (m) after(m, mover);
-    }, 450);
+    }, 450 + Math.random() * 450);
   }
 
   /* ----- buttons ----- */
