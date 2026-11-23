@@ -153,9 +153,9 @@
       `<button class="mopt${x.id === bot.id ? ' active' : ''}" data-bot="${x.id}">${pc(x.icon, 'b')}<span><b>${x.name}</b><small>${x.tag}</small></span><span class="rt">${x.rating}</span></button>`).join('');
     document.querySelectorAll('#oppSeg button').forEach(b => b.classList.toggle('active', b.dataset.opp === opp));
     document.querySelectorAll('#sideSeg button').forEach(b => b.classList.toggle('active', b.dataset.side === sidePick));
-    $('botBox').hidden = opp !== 'bot';
+    $('botBox').hidden = opp !== 'bot'; $('sideBox').hidden = opp !== 'bot';
   }
-  document.querySelector('.setup').addEventListener('click', e => {
+  function setupClick(e) {
     const t = e.target.closest('button'); if (!t) return;
     if (t.id === 'startBtn') { started = true; startGame(); return; }
     if (t.dataset.mode) mode = MODES.find(m => m.id === t.dataset.mode);
@@ -165,7 +165,9 @@
     else return;
     buildSetup();
     if (!game.history().length || over) { started = true; startGame(); }
-  });
+  }
+  document.querySelector('.setup').addEventListener('click', setupClick);
+  $('quick').addEventListener('click', setupClick);
 
   function enterGame() {
     show('game');
@@ -189,7 +191,7 @@
     flip = opp === 'bot' && humanColor === 'b';
     times = { w: mode.time * 1000, b: mode.time * 1000 };
     $('modeLabel').textContent = mode.name + (mode.time ? ' · ' + mode.label : '') + (opp === 'bot' ? ' · vs ' + bot.name : '');
-    $('undoBtn').textContent = opp === 'bot' ? 'Undo' : 'Takeback';
+    { const lbl = opp === 'bot' ? 'Undo' : 'Request takeback'; $('undoBtn').title = lbl; $('undoBtn').setAttribute('aria-label', lbl); }
     document.querySelector('.board-col').classList.toggle('flip', flip);
     stopConfetti(); $('overModal').classList.remove('open'); $('promoModal').classList.remove('open'); $('tbModal').classList.remove('open');
     setNames(); buildSetup(); runClock(); render(); maybeBot();
@@ -299,7 +301,7 @@
     $('overTitle').textContent = title; $('overMsg').textContent = msg;
     const win = !!winner && (opp !== 'bot' || winner === humanColor);
     $('overBox').classList.toggle('celebrate', win);
-    $('winCat').hidden = !win; $('overHead').hidden = !win;
+    $('winCat').toggleAttribute('hidden', !win); $('overHead').hidden = !win;
     if (win) $('overHead').textContent = opp === 'bot' ? 'You win!' : (winner === 'w' ? 'White' : 'Black') + ' wins!';
     $('overModal').classList.add('open');
     if (win) celebrate(); else stopConfetti();
