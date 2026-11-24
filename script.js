@@ -140,7 +140,7 @@
   let mode = MODES[1], opp = 'human', bot = BOTS[0], sidePick = 'w', humanColor = 'w', flip = false;
   let thinking = false, botToken = 0, started = false;
   let times = { w: 0, b: 0 }, tick = null, lastTs = 0, over = false;
-  let selected = null, legal = [], lastMove = null, premove = null;
+  let selected = null, legal = [], lastMove = null, premove = null, viewPly = null, manualFlip = false;
 
   function who(c) { return opp === 'bot' ? (c === humanColor ? 'You' : bot.name) : (c === 'w' ? 'White' : 'Black'); }
   function wins(c) { const w = who(c); return w + (w === 'You' ? ' win.' : ' wins.'); }
@@ -186,7 +186,7 @@
 
   function startGame() {
     botToken++; thinking = false;
-    game.reset(); selected = null; legal = []; lastMove = null; over = false; premove = null;
+    game.reset(); selected = null; legal = []; lastMove = null; over = false; premove = null; viewPly = null; manualFlip = false;
     humanColor = opp === 'bot' ? (sidePick === 'r' ? (Math.random() < 0.5 ? 'w' : 'b') : sidePick) : 'w';
     flip = opp === 'bot' && humanColor === 'b';
     times = { w: mode.time * 1000, b: mode.time * 1000 };
@@ -235,18 +235,28 @@
 
   /* ----- board ----- */
   function render() {
-    const b = $('board'), board = game.board(), chk = game.in_check();
+    if (viewPly !== null && viewPly >= game.history().length) viewPly = null;
+    const view = viewPly !== null;
+    let src = game, lm = lastMove;
+    if (view) {
+      const hv = game.history({ verbose: true });
+      src = new Chess(); for (let i = 0; i < viewPly; i++) src.move(hv[i].san);
+      lm = viewPly > 0 ? { from: hv[viewPly - 1].from, to: hv[viewPly - 1].to } : null;
+    }
+    const fl = flip !== manualFlip;
+    document.querySelector('.board-col').classList.toggle('flip', fl);
+    const b = $('board'), board = src.board(), chk = src.in_check(), turn = src.turn();
     b.innerHTML = '';
     for (let i = 0; i < 8; i++) for (let j = 0; j < 8; j++) {
-      const r = flip ? 7 - i : i, c = flip ? 7 - j : j;
+      const r = fl ? 7 - i : i, c = fl ? 7 - j : j;
       const sq = files[c] + (8 - r), p = board[r][c], el = document.createElement('div');
       el.className = 'sq ' + ((r + c) % 2 ? 'd' : 'l');
       if (sq === selected) el.classList.add('sel');
-      if (premove && (sq === premove.from || sq === premove.to)) el.classList.add('pre');
-      if (lastMove && (sq === lastMove.from || sq === lastMove.to)) el.classList.add('last');
+      if (!view && premove && (sq === premove.from || sq === premove.to)) el.classList.add('pre');
+      if (lm && (sq === lm.from || sq === lm.to)) el.classList.add('last');
       const h = legal.find(m => m.to === sq);
       if (h) { el.classList.add('hint'); if (p || h.flags.includes('e')) el.classList.add('cap'); }
-      if (chk && p && p.type === 'k' && p.color === game.turn()) el.classList.add('chk');
+      if (chk && p && p.type === 'k' && p.color === turn) el.classList.add('chk');
       if (p) el.insertAdjacentHTML('beforeend', pc(p.type, p.color === 'w' ? 'w' : 'b'));
       if (j === 0) el.insertAdjacentHTML('beforeend', `<span class="co" style="top:2px;left:3px">${8 - r}</span>`);
       if (i === 7) el.insertAdjacentHTML('beforeend', `<span class="co" style="bottom:1px;right:3px">${files[c]}</span>`);
@@ -291,6 +301,7 @@
   }
 
   function onSquare(sq) {
+    if (viewPly !== null) { goPly(game.history().length); return; }
     if (over) return;
     if (opp === 'bot' && (thinking || game.turn() !== humanColor)) { premoveClick(sq); return; }
     if (thinking) return;
@@ -353,14 +364,17 @@
     else if (opp === 'bot') s = t === humanColor ? 'Your turn' : bot.name + ' is thinking...';
     else s = (t === 'w' ? "White's" : "Black's") + ' turn';
     if (!over && game.in_check()) s += ' · check!';
+    if (viewPly !== null && viewPly < game.history().length) s = 'Viewing move ' + viewPly + ' of ' + game.history().length;
     $('status').textContent = s;
     const hist = game.history(), h = $('history');
+    const cur = viewPly === null ? hist.length : viewPly;
+    document.querySelectorAll('#navRow [data-nav]').forEach(b => { const k = b.dataset.nav; b.disabled = (k === 'first' || k === 'prev') ? cur <= 0 : cur >= hist.length; });
     $('startBtn').textContent = hist.length && !over ? 'Start new game' : 'Start game';
     if (!hist.length) { h.innerHTML = '<p class="empty">No moves yet. White starts.</p>'; return; }
     h.innerHTML = '';
-    for (let i = 0; i < hist.length; i += 2)
-      h.insertAdjacentHTML('beforeend', `<span class="n">${i / 2 + 1}.</span><span>${hist[i]}</span><span>${hist[i + 1] || ''}</span>`);
-    h.scrollTop = h.scrollHeight;
+    const mvEl = i => hist[i] ? `<span class="mv${cur === i + 1 ? ' cur' : ''}" data-ply="${i + 1}">${hist[i]}</span>` : '<span></span>';
+    for (let i = 0; i < hist.length; i += 2) h.insertAdjacentHTML('beforeend', `<span class="n">${i / 2 + 1}.</span>${mvEl(i)}${mvEl(i + 1)}`);
+    if (viewPly === null) h.scrollTop = h.scrollHeight;
   }
 
   /* ----- computer opponent: see bots.js (custom engine, no Stockfish) ----- */
@@ -382,10 +396,37 @@
     }, 450 + Math.random() * 450);
   }
 
+  /* ----- look back through the moves, flip the board ----- */
+  function goPly(n) {
+    const len = game.history().length;
+    n = Math.max(0, Math.min(n, len));
+    viewPly = n >= len ? null : n;
+    selected = null; legal = [];
+    render();
+  }
+  $('navRow').addEventListener('click', e => {
+    const b = e.target.closest('[data-nav]'); if (!b) return;
+    const len = game.history().length, cur = viewPly === null ? len : viewPly, k = b.dataset.nav;
+    goPly(k === 'first' ? 0 : k === 'prev' ? cur - 1 : k === 'next' ? cur + 1 : len);
+  });
+  $('history').addEventListener('click', e => { const m = e.target.closest('.mv'); if (m) goPly(+m.dataset.ply); });
+  $('flipBtn').onclick = () => { manualFlip = !manualFlip; render(); };
+  document.addEventListener('keydown', e => {
+    if (!$('game').classList.contains('active') || (e.target.closest && e.target.closest('input,textarea,select'))) return;
+    if (document.querySelector('.overlay.open') || !$('tbModal').hidden) return;
+    const len = game.history().length, cur = viewPly === null ? len : viewPly;
+    if (e.key === 'ArrowLeft') goPly(cur - 1);
+    else if (e.key === 'ArrowRight') goPly(cur + 1);
+    else if (e.key === 'ArrowUp' || e.key === 'Home') goPly(0);
+    else if (e.key === 'ArrowDown' || e.key === 'End') goPly(len);
+    else return;
+    e.preventDefault();
+  });
+
   /* ----- buttons ----- */
   function takeBack(plies) {
     for (let i = 0; i < plies && game.history().length; i++) game.undo();
-    selected = null; legal = []; premove = null;
+    selected = null; legal = []; premove = null; viewPly = null;
     const hv = game.history({ verbose: true }); lastMove = hv.length ? hv[hv.length - 1] : null;
     lastTs = Date.now();
     render(); maybeBot();
