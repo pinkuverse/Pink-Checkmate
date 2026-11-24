@@ -193,7 +193,7 @@
     $('modeLabel').textContent = mode.name + (mode.time ? ' · ' + mode.label : '') + (opp === 'bot' ? ' · vs ' + bot.name : '');
     { const lbl = opp === 'bot' ? 'Undo' : 'Request takeback'; $('undoBtn').title = lbl; $('undoBtn').setAttribute('aria-label', lbl); }
     document.querySelector('.board-col').classList.toggle('flip', flip);
-    stopConfetti(); $('overModal').classList.remove('open'); $('promoModal').classList.remove('open'); $('tbModal').classList.remove('open');
+    stopConfetti(); $('overModal').classList.remove('open'); $('promoModal').classList.remove('open'); $('tbModal').hidden = true;
     setNames(); buildSetup(); runClock(); render(); maybeBot();
   }
 
@@ -204,7 +204,7 @@
     lastTs = Date.now();
     tick = setInterval(() => {
       const now = Date.now(), dt = now - lastTs; lastTs = now;
-      if (over || !$('game').classList.contains('active') || $('tbModal').classList.contains('open') || game.history().length === 0) return;
+      if (over || !$('game').classList.contains('active') || !$('tbModal').hidden || game.history().length === 0) return;
       const t = game.turn();
       times[t] -= dt;
       if (times[t] <= 0) { times[t] = 0; timeout(t); }
@@ -363,10 +363,10 @@
     // two players on one screen: the other player has to agree
     const mover = game.turn() === 'w' ? 'Black' : 'White', other = game.turn() === 'w' ? 'White' : 'Black';
     $('tbText').textContent = mover + ' would like to take back their last move. ' + other + ', do you accept?';
-    $('tbModal').classList.add('open');
+    $('tbModal').hidden = false;
   };
-  $('tbYes').onclick = () => { $('tbModal').classList.remove('open'); takeBack(1); };
-  $('tbNo').onclick = () => { $('tbModal').classList.remove('open'); };
+  $('tbYes').onclick = () => { $('tbModal').hidden = true; takeBack(1); };
+  $('tbNo').onclick = () => { $('tbModal').hidden = true; };
   $('resignBtn').onclick = () => {
     if (over) return;
     const loser = opp === 'bot' ? humanColor : game.turn();
