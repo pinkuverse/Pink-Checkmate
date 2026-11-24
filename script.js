@@ -140,7 +140,7 @@
   let mode = MODES[1], opp = 'human', bot = BOTS[0], sidePick = 'w', humanColor = 'w', flip = false;
   let thinking = false, botToken = 0, started = false;
   let times = { w: 0, b: 0 }, tick = null, lastTs = 0, over = false;
-  let selected = null, legal = [], lastMove = null;
+  let selected = null, legal = [], lastMove = null, premove = null;
 
   function who(c) { return opp === 'bot' ? (c === humanColor ? 'You' : bot.name) : (c === 'w' ? 'White' : 'Black'); }
   function wins(c) { const w = who(c); return w + (w === 'You' ? ' win.' : ' wins.'); }
@@ -186,7 +186,7 @@
 
   function startGame() {
     botToken++; thinking = false;
-    game.reset(); selected = null; legal = []; lastMove = null; over = false;
+    game.reset(); selected = null; legal = []; lastMove = null; over = false; premove = null;
     humanColor = opp === 'bot' ? (sidePick === 'r' ? (Math.random() < 0.5 ? 'w' : 'b') : sidePick) : 'w';
     flip = opp === 'bot' && humanColor === 'b';
     times = { w: mode.time * 1000, b: mode.time * 1000 };
@@ -242,6 +242,7 @@
       const sq = files[c] + (8 - r), p = board[r][c], el = document.createElement('div');
       el.className = 'sq ' + ((r + c) % 2 ? 'd' : 'l');
       if (sq === selected) el.classList.add('sel');
+      if (premove && (sq === premove.from || sq === premove.to)) el.classList.add('pre');
       if (lastMove && (sq === lastMove.from || sq === lastMove.to)) el.classList.add('last');
       const h = legal.find(m => m.to === sq);
       if (h) { el.classList.add('hint'); if (p || h.flags.includes('e')) el.classList.add('cap'); }
@@ -255,9 +256,44 @@
     info(); renderClocks();
   }
 
+  /* ----- premove (against the computer): queue your next move while it thinks ----- */
+  function premoveTargets(sq) {
+    const p = game.get(sq), out = [];
+    const f = files.indexOf(sq[0]), r = +sq[1] - 1;
+    const at = (nf, nr) => (nf < 0 || nf > 7 || nr < 0 || nr > 7) ? null : files[nf] + (nr + 1);
+    const own = t => { const o = game.get(t); return o && o.color === p.color; };
+    const step = (df, dr) => { const t = at(f + df, r + dr); if (t && !own(t)) out.push(t); };
+    const slide = dirs => dirs.forEach(([df, dr]) => { for (let k = 1; k < 8; k++) { const t = at(f + df * k, r + dr * k); if (!t || own(t)) break; out.push(t); } });
+    const D = [[1, 0], [-1, 0], [0, 1], [0, -1]], G = [[1, 1], [1, -1], [-1, 1], [-1, -1]];
+    if (p.type === 'n') [[1, 2], [2, 1], [-1, 2], [-2, 1], [1, -2], [2, -1], [-1, -2], [-2, -1]].forEach(([a, b]) => step(a, b));
+    else if (p.type === 'k') { D.concat(G).forEach(([a, b]) => step(a, b)); if (sq === 'e1' || sq === 'e8') { step(2, 0); step(-2, 0); } }
+    else if (p.type === 'b') slide(G);
+    else if (p.type === 'r') slide(D);
+    else if (p.type === 'q') slide(D.concat(G));
+    else { const dir = p.color === 'w' ? 1 : -1; step(0, dir); if (r === (p.color === 'w' ? 1 : 6)) step(0, 2 * dir); step(1, dir); step(-1, dir); }
+    return out;
+  }
+  function premoveClick(sq) {
+    const p = game.get(sq);
+    if (selected && legal.find(m => m.to === sq)) { premove = { from: selected, to: sq }; selected = null; legal = []; render(); return; }
+    if (p && p.color === humanColor) { premove = null; selected = sq; legal = premoveTargets(sq).map(t => ({ to: t, flags: '' })); render(); return; }
+    premove = null; selected = null; legal = []; render();
+  }
+  function runPremove() {
+    if (!premove) return;
+    const pm = premove, tok = botToken; premove = null;
+    const mv = game.moves({ square: pm.from, verbose: true }).find(m => m.to === pm.to);
+    if (!mv) { render(); return; }
+    setTimeout(() => {
+      if (over || tok !== botToken || game.turn() !== humanColor) return;
+      play(pm.from, pm.to, mv.flags.includes('p') ? 'q' : undefined);
+    }, 150);
+  }
+
   function onSquare(sq) {
-    if (over || thinking) return;
-    if (opp === 'bot' && game.turn() !== humanColor) return;
+    if (over) return;
+    if (opp === 'bot' && (thinking || game.turn() !== humanColor)) { premoveClick(sq); return; }
+    if (thinking) return;
     const mv = legal.find(m => m.to === sq);
     if (selected && mv) { mv.flags.includes('p') ? askPromo(mv.from, mv.to) : play(mv.from, mv.to); return; }
     const p = game.get(sq);
@@ -280,7 +316,7 @@
     if (game.in_checkmate()) finish('Checkmate', wins(mover), mover);
     else if (game.in_stalemate()) finish('Stalemate', 'No legal moves. It is a draw.');
     else if (game.in_draw()) finish('Draw', 'The game is a draw.');
-    else maybeBot();
+    else { maybeBot(); if (opp === 'bot' && !over && game.turn() === humanColor) runPremove(); }
   }
 
   function askPromo(from, to) {
@@ -297,7 +333,7 @@
   }
 
   function finish(title, msg, winner) {
-    over = true; thinking = false; botToken++; clearInterval(tick);
+    over = true; thinking = false; premove = null; botToken++; clearInterval(tick);
     $('overTitle').textContent = title; $('overMsg').textContent = msg;
     const win = !!winner && (opp !== 'bot' || winner === humanColor);
     $('overBox').classList.toggle('celebrate', win);
@@ -349,7 +385,7 @@
   /* ----- buttons ----- */
   function takeBack(plies) {
     for (let i = 0; i < plies && game.history().length; i++) game.undo();
-    selected = null; legal = [];
+    selected = null; legal = []; premove = null;
     const hv = game.history({ verbose: true }); lastMove = hv.length ? hv[hv.length - 1] : null;
     lastTs = Date.now();
     render(); maybeBot();
