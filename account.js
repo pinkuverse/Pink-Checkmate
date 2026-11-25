@@ -3,7 +3,8 @@
 (function () {
   'use strict';
   const KEY = 'pcUsers', SESS = 'pcSession';
-  let tab = 'login';
+  let tab = 'login', repo = false;
+  const dims = {};
 
   /* ---------- storage ---------- */
   const load = () => { try { return JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) { return {}; } };
@@ -212,6 +213,11 @@
 .pcx-bioedit{margin-left:auto;flex:none;width:36px;height:36px;border-radius:50%;border:0;background:#ffe3ee;color:#e0679b;display:grid;place-items:center;cursor:pointer}
 .pcx-bioedit svg{width:16px;height:16px}
 .pcx-bioedit:hover{background:#ffd0e2}
+.pcx-hint{margin:0;color:#e0679b;font-weight:700;font-size:.9rem}
+.pcx.repo .hasimg{cursor:grab;touch-action:none}
+.pcx.repo .hasimg:active{cursor:grabbing}
+.pcx.repo .pcx-hero.hasimg{outline:3px dashed #e0679b;outline-offset:-8px}
+.pcx.repo .pcx-av.hasimg{outline:3px dashed #e0679b;outline-offset:3px}
 @media(prefers-reduced-motion:reduce){#pcDrawer .pcd-panel,#pcDrawer .pcd-back{transition:none}}
 `;
   const st = document.createElement('style'); st.textContent = css + css2; document.head.appendChild(st);
@@ -272,11 +278,13 @@
           <h3>Edit profile</h3>
           <label class="pcx-field"><span>Display name</span><input id="pcxDisp" class="pcx-in" maxlength="20"></label>
           <label class="pcx-field"><span>Bio <small id="pcxBioCount" style="opacity:.6"></small></span><textarea id="pcxBio" class="pcx-in" rows="3" maxlength="120" placeholder="Write something about you..."></textarea></label>
+          <p class="pcx-hint" id="pcxRepoHint" hidden>Drag your photo or banner to move it, then press Done adjusting.</p>
           <p class="pcx-err" id="pcxPErr" role="alert"></p>
           <div class="pcx-row">
             <button class="pcx-btn primary small" type="button" id="pcxSave">Save</button>
             <label class="pcx-btn small" for="pcxPhotoIn" style="cursor:pointer">Change photo</label>
             <label class="pcx-btn small" for="pcxBannerIn" style="cursor:pointer">Change banner</label>
+            <button class="pcx-btn small" type="button" id="pcxRepo">Adjust position</button>
             <button class="pcx-btn small" type="button" id="pcxRmPhoto">Remove photo</button>
             <button class="pcx-btn small" type="button" id="pcxRmBanner">Remove banner</button>
           </div>
@@ -317,10 +325,13 @@
   const $ = id => document.getElementById(id);
 
   /* make sure the nav has a place for the Log in / Sign up buttons */
-  document.querySelectorAll('.navbtns').forEach(n => { if (!n.querySelector('.acct')) { const s = document.createElement('span'); s.className = 'acct'; n.prepend(s); } });
+  document.querySelectorAll('.navbtns').forEach(n => {
+    let s = n.querySelector('.acct'); if (!s) { s = document.createElement('span'); s.className = 'acct'; }
+    const st = n.querySelector('[data-settings]'); if (st) st.after(s); else n.prepend(s);
+  });
 
   /* ---------- navigation ---------- */
-  function goto(id) { document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === id)); window.scrollTo(0, 0); }
+  function goto(id) { document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === id)); window.scrollTo(0, 0); try { history.replaceState(null, '', '#' + id); } catch (e) {} }
   function playNow() { const b = document.querySelector('#home [data-go="game"]') || document.querySelector('[data-go="game"]'); if (b) b.click(); }
   function setTab(t) {
     tab = t;
@@ -357,6 +368,7 @@
         const c = document.createElement('button'); c.className = 'chip'; c.dataset.acct = 'profile'; c.title = 'Your profile';
         const av = document.createElement('span'); av.className = 'mini-av';
         av.style.backgroundImage = u.photo ? 'url("' + u.photo + '")' : ''; av.textContent = u.photo ? '' : initial(u.name);
+        { const q = u.photoPos || { x: 50, y: 50 }; av.style.backgroundPosition = q.x + '% ' + q.y + '%'; }
         const nm = document.createElement('b'); nm.textContent = u.name;
         c.append(av, nm); box.append(c);
       }
@@ -367,11 +379,16 @@
     const av = $('pcxAv');
     av.style.backgroundImage = u.photo ? 'url("' + u.photo + '")' : '';
     if (u.photo) av.textContent = ''; else av.innerHTML = CAT;
+    const pp = u.photoPos || { x: 50, y: 50 }, bp = u.bannerPos || { x: 50, y: 50 };
+    av.style.backgroundPosition = pp.x + '% ' + pp.y + '%'; av.classList.toggle('hasimg', !!u.photo);
+    $('pcxNavAv').style.backgroundPosition = pp.x + '% ' + pp.y + '%';
+    [u.photo, u.banner].forEach(src => { if (src && !dims[src]) { const im = new Image(); im.onload = () => { dims[src] = { w: im.naturalWidth, h: im.naturalHeight }; }; im.src = src; } });
     $('pcxNavAv').style.backgroundImage = u.photo ? 'url("' + u.photo + '")' : ''; $('pcxNavAv').textContent = u.photo ? '' : initial(u.name);
     $('pcxNavName').textContent = u.name;
     const hero = $('pcxHero');
     hero.style.backgroundImage = u.banner ? 'url("' + u.banner + '")' : '';
     hero.classList.toggle('checker', !u.banner);
+    hero.style.backgroundPosition = bp.x + '% ' + bp.y + '%'; hero.classList.toggle('hasimg', !!u.banner);
     $('pcxName').textContent = u.name; $('pcxHandle').textContent = '@' + getSess(); $('pcxUname').textContent = '@' + getSess();
     $('pcxSince').textContent = new Date(u.created || Date.now()).toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
     const g = u.games || 0, w = u.wins || 0;
@@ -410,7 +427,37 @@
     else if (e.target.closest('[data-play]')) playNow();
     const pv = e.target.closest('[data-pv]'); if (pv) setPV(pv.dataset.pv);
   });
-  $('pcxEditBtn').onclick = () => { $('pcxEdit').hidden = !$('pcxEdit').hidden; $('pcxPErr').textContent = ''; };
+  $('pcxEditBtn').onclick = () => { $('pcxEdit').hidden = !$('pcxEdit').hidden; $('pcxPErr').textContent = ''; if ($('pcxEdit').hidden) setRepo(false); };
+  function setRepo(on) {
+    repo = on; profile.classList.toggle('repo', on);
+    $('pcxRepo').textContent = on ? 'Done adjusting' : 'Adjust position'; $('pcxRepoHint').hidden = !on;
+  }
+  $('pcxRepo').onclick = () => setRepo(!repo);
+  /* drag a picture inside its frame to choose which part shows */
+  function makeDraggable(el, field, skip) {
+    el.addEventListener('pointerdown', e => {
+      if (!repo || !el.classList.contains('hasimg') || (skip && e.target.closest(skip))) return;
+      const u = me(); if (!u || !u[field]) return;
+      const d = dims[u[field]]; if (!d) return;
+      e.preventDefault(); el.setPointerCapture(e.pointerId);
+      const start = Object.assign({ x: 50, y: 50 }, u[field + 'Pos']);
+      const fw = el.clientWidth, fh = el.clientHeight, sc = Math.max(fw / d.w, fh / d.h);
+      const ox = d.w * sc - fw, oy = d.h * sc - fh, sx = e.clientX, sy = e.clientY;
+      let cur = { x: start.x, y: start.y };
+      const clamp = v => Math.max(0, Math.min(100, v));
+      const move = ev => {
+        cur = { x: ox > 1 ? clamp(start.x - (ev.clientX - sx) / ox * 100) : start.x, y: oy > 1 ? clamp(start.y - (ev.clientY - sy) / oy * 100) : start.y };
+        el.style.backgroundPosition = cur.x + '% ' + cur.y + '%';
+      };
+      const up = () => {
+        el.removeEventListener('pointermove', move); el.removeEventListener('pointerup', up); el.removeEventListener('pointercancel', up);
+        update(x => { x[field + 'Pos'] = cur; }); drawAcct();
+      };
+      el.addEventListener('pointermove', move); el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
+    });
+  }
+  makeDraggable($('pcxAv'), 'photo');
+  makeDraggable($('pcxHero'), 'banner', '.pcx-avwrap,button,label,input,textarea');
   $('pcxBioBtn').onclick = () => { $('pcxEdit').hidden = false; $('pcxEdit').scrollIntoView({ behavior: 'smooth', block: 'center' }); setTimeout(() => $('pcxBio').focus(), 250); };
   $('pcxBio').addEventListener('input', () => { $('pcxBioCount').textContent = $('pcxBio').value.length + '/120'; });
 
@@ -443,12 +490,12 @@
           const salt = rand();
           users[key] = { name, salt, hash: await hash(salt, pass), photo: '', banner: '', bio: '', games: 0, wins: 0, draws: 0, losses: 0, history: [], created: Date.now() };
           if (!save(users)) err.textContent = 'Could not save on this device. Is private browsing on?';
-          else { setSess(key); $('pcdForm').reset(); closeDrawer(); drawAcct(); showProfile(); }
+          else { setSess(key); $('pcdForm').reset(); closeDrawer(); drawAcct(); playNow(); }
         }
       } else {
         const u = users[key];
         if (!u || u.hash !== await hash(u.salt, pass)) err.textContent = 'Wrong username or password.';
-        else { setSess(key); $('pcdForm').reset(); closeDrawer(); drawAcct(); showProfile(); }
+        else { setSess(key); $('pcdForm').reset(); closeDrawer(); drawAcct(); playNow(); }
       }
     } catch (x) { err.textContent = 'Something went wrong. Please try again.'; }
     btn.disabled = false;
@@ -463,32 +510,32 @@
   $('pcxRmPhoto').onclick = () => { update(u => { u.photo = ''; }); drawAcct(); drawProfile(); };
   $('pcxRmBanner').onclick = () => { update(u => { u.banner = ''; }); drawProfile(); };
 
-  /* pictures are shrunk in the browser first */
-  function toData(file, w, h) {
+  /* pictures are shrunk in the browser first (shape kept, so they can be moved around in their frame) */
+  function toData(file, max) {
     return new Promise((res, rej) => {
       const img = new Image(), url = URL.createObjectURL(file);
       img.onload = () => {
-        const c = document.createElement('canvas'); c.width = w; c.height = h;
-        const s = Math.max(w / img.width, h / img.height), dw = img.width * s, dh = img.height * s;
-        c.getContext('2d').drawImage(img, (w - dw) / 2, (h - dh) / 2, dw, dh);
-        URL.revokeObjectURL(url); res(c.toDataURL('image/jpeg', 0.82));
+        const s = Math.min(1, max / Math.max(img.width, img.height));
+        const c = document.createElement('canvas'); c.width = Math.round(img.width * s); c.height = Math.round(img.height * s);
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        URL.revokeObjectURL(url); res(c.toDataURL('image/jpeg', 0.85));
       };
       img.onerror = () => rej(new Error('bad image'));
       img.src = url;
     });
   }
-  async function pick(input, w, h, field) {
+  async function pick(input, max, field) {
     const f = input.files[0]; input.value = '';
     const err = $('pcxPErr'); err.className = 'pcx-err'; err.textContent = '';
     if (!f || !me()) return;
     try {
-      const data = await toData(f, w, h);
-      if (!update(u => { u[field] = data; })) throw new Error('save');
-      drawProfile(); drawAcct();
+      const data = await toData(f, max);
+      if (!update(u => { u[field] = data; u[field + 'Pos'] = { x: 50, y: 50 }; })) throw new Error('save');
+      drawProfile(); drawAcct(); $('pcxEdit').hidden = false; setRepo(true);
     } catch (x) { $('pcxEdit').hidden = false; err.textContent = 'Could not save that picture. Try a different image.'; }
   }
-  $('pcxPhotoIn').addEventListener('change', e => pick(e.target, 256, 256, 'photo'));
-  $('pcxBannerIn').addEventListener('change', e => pick(e.target, 960, 240, 'banner'));
+  $('pcxPhotoIn').addEventListener('change', e => pick(e.target, 640, 'photo'));
+  $('pcxBannerIn').addEventListener('change', e => pick(e.target, 1400, 'banner'));
 
   /* ---------- game results (against the computer) ---------- */
   function recordResult(r, info) {
@@ -499,6 +546,7 @@
     });
     drawProfile();
   }
-  window.PinkAccount = { recordResult };
+  function restoreProfile() { if (me()) showProfile('profile'); else goto('home'); }
+  window.PinkAccount = { recordResult, restoreProfile };
   drawAcct();
 })();
