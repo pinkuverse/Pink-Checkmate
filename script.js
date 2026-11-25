@@ -346,7 +346,7 @@
   function finish(title, msg, winner) {
     over = true; thinking = false; premove = null; botToken++; clearInterval(tick);
     $('rsCard').hidden = true; $('tbModal').hidden = true;
-    if (opp === 'bot' && window.PinkAccount) { try { window.PinkAccount.recordResult(!winner ? 'draw' : winner === humanColor ? 'win' : 'loss'); } catch (e) {} }
+    if (opp === 'bot' && window.PinkAccount) { try { window.PinkAccount.recordResult(!winner ? 'draw' : winner === humanColor ? 'win' : 'loss', { bot: bot.name, rating: bot.rating, mode: mode.name, moves: game.history().length }); } catch (e) {} }
     $('overTitle').textContent = title; $('overMsg').textContent = msg;
     const win = !!winner && (opp !== 'bot' || winner === humanColor);
     $('overBox').classList.toggle('celebrate', win);
