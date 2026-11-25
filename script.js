@@ -193,7 +193,7 @@
     $('modeLabel').textContent = mode.name + (mode.time ? ' · ' + mode.label : '') + (opp === 'bot' ? ' · vs ' + bot.name : '');
     { const lbl = opp === 'bot' ? 'Undo' : 'Request takeback'; $('undoBtn').title = lbl; $('undoBtn').setAttribute('aria-label', lbl); }
     document.querySelector('.board-col').classList.toggle('flip', flip);
-    stopConfetti(); $('overModal').classList.remove('open'); $('promoModal').classList.remove('open'); $('tbModal').hidden = true;
+    stopConfetti(); $('overModal').classList.remove('open'); $('promoModal').classList.remove('open'); $('tbModal').hidden = true; $('rsCard').hidden = true;
     setNames(); buildSetup(); runClock(); render(); maybeBot();
   }
 
@@ -204,7 +204,7 @@
     lastTs = Date.now();
     tick = setInterval(() => {
       const now = Date.now(), dt = now - lastTs; lastTs = now;
-      if (over || !$('game').classList.contains('active') || !$('tbModal').hidden || game.history().length === 0) return;
+      if (over || !$('game').classList.contains('active') || !$('tbModal').hidden || !$('rsCard').hidden || game.history().length === 0) return;
       const t = game.turn();
       times[t] -= dt;
       if (times[t] <= 0) { times[t] = 0; timeout(t); }
@@ -345,6 +345,8 @@
 
   function finish(title, msg, winner) {
     over = true; thinking = false; premove = null; botToken++; clearInterval(tick);
+    $('rsCard').hidden = true; $('tbModal').hidden = true;
+    if (opp === 'bot' && window.PinkAccount) { try { window.PinkAccount.recordResult(!winner ? 'draw' : winner === humanColor ? 'win' : 'loss'); } catch (e) {} }
     $('overTitle').textContent = title; $('overMsg').textContent = msg;
     const win = !!winner && (opp !== 'bot' || winner === humanColor);
     $('overBox').classList.toggle('celebrate', win);
@@ -413,7 +415,7 @@
   $('flipBtn').onclick = () => { manualFlip = !manualFlip; render(); };
   document.addEventListener('keydown', e => {
     if (!$('game').classList.contains('active') || (e.target.closest && e.target.closest('input,textarea,select'))) return;
-    if (document.querySelector('.overlay.open') || !$('tbModal').hidden) return;
+    if (document.querySelector('.overlay.open, #pcDrawer.open') || !$('tbModal').hidden || !$('rsCard').hidden) return;
     const len = game.history().length, cur = viewPly === null ? len : viewPly;
     if (e.key === 'ArrowLeft') goPly(cur - 1);
     else if (e.key === 'ArrowRight') goPly(cur + 1);
@@ -440,15 +442,22 @@
     // two players on one screen: the other player has to agree
     const mover = game.turn() === 'w' ? 'Black' : 'White', other = game.turn() === 'w' ? 'White' : 'Black';
     $('tbText').textContent = mover + ' would like to take back their last move. ' + other + ', do you accept?';
-    $('tbModal').hidden = false;
+    $('rsCard').hidden = true; $('tbModal').hidden = false;
   };
   $('tbYes').onclick = () => { $('tbModal').hidden = true; takeBack(1); };
   $('tbNo').onclick = () => { $('tbModal').hidden = true; };
   $('resignBtn').onclick = () => {
     if (over) return;
     const loser = opp === 'bot' ? humanColor : game.turn();
-    if (confirm((opp === 'bot' ? 'Resign this game?' : (loser === 'w' ? 'White' : 'Black') + ' resigns?')))
-      finish('Resigned', wins(loser === 'w' ? 'b' : 'w'), loser === 'w' ? 'b' : 'w');
+    $('rsText').textContent = opp === 'bot' ? 'Resign this game?' : (loser === 'w' ? 'White' : 'Black') + ' resigns?';
+    $('tbModal').hidden = true; $('rsCard').hidden = false;
+  };
+  $('rsNo').onclick = () => { $('rsCard').hidden = true; };
+  $('rsYes').onclick = () => {
+    $('rsCard').hidden = true;
+    if (over) return;
+    const loser = opp === 'bot' ? humanColor : game.turn(), winner = loser === 'w' ? 'b' : 'w';
+    finish('Resigned', wins(winner), winner);
   };
   $('restartBtn').onclick = () => { started = true; startGame(); };
   $('rematchBtn').onclick = () => { started = true; startGame(); };
