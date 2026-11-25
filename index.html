@@ -148,50 +148,6 @@
     </div>
   </div>
 
-  <!-- ACCOUNT -->
-  <div class="overlay" id="acctModal">
-    <div class="modal acct-modal">
-      <button class="x" id="acctClose" aria-label="Close">×</button>
-
-      <div id="acctAuth" hidden>
-        <div class="seg" id="acctTabs"><button class="active" data-tab="login">Log in</button><button data-tab="signup">Sign up</button></div>
-        <form id="acctForm" novalidate>
-          <input type="text" id="acctName" placeholder="Username" autocomplete="username" maxlength="20">
-          <input type="password" id="acctPass" placeholder="Password" autocomplete="current-password">
-          <p class="acct-err" id="acctErr" role="alert"></p>
-          <button class="btn" id="acctSubmit" type="submit">Log in</button>
-        </form>
-        <div class="acct-actions">
-          <button class="linkbtn" id="acctGuest" type="button">Keep playing as guest</button>
-          <p class="sb2" style="text-align:center;margin:4px 0 0!important">Your account is saved on this device for now.</p>
-        </div>
-      </div>
-
-      <div id="acctProfile" hidden>
-        <div class="pf-banner" id="pfBanner"></div>
-        <div class="pf-head">
-          <div class="pf-av" id="pfAvatar"></div>
-          <div class="pf-id"><h2 id="pfName"></h2><small id="pfSince"></small></div>
-        </div>
-        <p class="sb2">Games against the computer</p>
-        <div class="pf-stats">
-          <div><b id="stGames">0</b><small>Games</small></div>
-          <div><b id="stWins">0</b><small>Wins</small></div>
-          <div><b id="stDraws">0</b><small>Draws</small></div>
-          <div><b id="stLosses">0</b><small>Losses</small></div>
-        </div>
-        <div class="controls">
-          <label class="btn small ghost" for="pfPhotoIn">Change photo</label>
-          <label class="btn small ghost" for="pfBannerIn">Change banner</label>
-          <button class="btn small ghost" id="pfLogout" type="button">Log out</button>
-        </div>
-        <input type="file" id="pfPhotoIn" accept="image/*" hidden>
-        <input type="file" id="pfBannerIn" accept="image/*" hidden>
-        <p class="acct-err" id="pfErr" role="alert"></p>
-      </div>
-    </div>
-  </div>
-
   <!-- SETTINGS -->
   <div class="overlay" id="setModal">
     <div class="modal">
