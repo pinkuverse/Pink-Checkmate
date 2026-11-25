@@ -1,9 +1,9 @@
 /* Pink Checkmate accounts (simple version): username + password, saved in this browser only.
-   Builds its own pages (Welcome / Profile) and styles. No server or Firebase yet. */
+   Log in / Sign up open in a side drawer; your profile is a full page. Builds its own markup and styles. No server or Firebase yet. */
 (function () {
   'use strict';
   const KEY = 'pcUsers', SESS = 'pcSession';
-  let view = 'choose';
+  let tab = 'login';
 
   /* ---------- storage ---------- */
   const load = () => { try { return JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) { return {}; } };
@@ -172,42 +172,78 @@
 }
 @media(prefers-reduced-motion:reduce){.pcx-deco .sp{animation:none}}
 `;
-  const st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
+  const css2 = `
+#pcDrawer{position:fixed;inset:0;z-index:80;visibility:hidden;pointer-events:none;transition:visibility 0s .3s;font-family:"Nunito",system-ui,sans-serif;color:#6a3a53}
+#pcDrawer.open{visibility:visible;pointer-events:auto;transition-delay:0s}
+#pcDrawer [hidden]{display:none!important}
+#pcDrawer *{box-sizing:border-box}
+#pcDrawer .pcd-back{position:absolute;inset:0;background:rgba(106,58,83,.35);backdrop-filter:blur(2px);opacity:0;transition:opacity .3s}
+#pcDrawer.open .pcd-back{opacity:1}
+#pcDrawer .pcd-panel{position:absolute;top:0;right:0;height:100%;width:min(430px,94vw);background:#fff8fb;box-shadow:-14px 0 44px rgba(224,103,155,.3);border-radius:28px 0 0 28px;overflow-y:auto;transform:translateX(105%);transition:transform .32s cubic-bezier(.2,.8,.2,1)}
+#pcDrawer.open .pcd-panel{transform:none}
+#pcDrawer .pcd-close{position:absolute;top:14px;right:14px;z-index:3;width:38px;height:38px;border-radius:50%;border:0;background:#fff;color:#e0679b;font-size:1.5rem;line-height:1;cursor:pointer;box-shadow:0 4px 12px rgba(224,103,155,.25)}
+#pcDrawer h2{font-family:"Fraunces",Georgia,serif;font-weight:600;margin:0}
+#pcDrawer .pcd-hero{text-align:center;padding:42px 28px 22px;background:linear-gradient(165deg,#ffd3e5,#ffe9f2 70%,#fff8fb)}
+#pcDrawer .pcd-logo{width:62px;height:62px;filter:drop-shadow(0 6px 8px rgba(224,103,155,.3))}
+#pcDrawer .pcd-hero h2{font-size:1.9rem;font-style:italic;color:#e0679b;margin-top:4px}
+#pcDrawer .pcd-hero p{margin:6px 0 0;opacity:.8}
+#pcDrawer .pcd-body{padding:22px 28px 34px;display:grid;gap:16px}
+#pcDrawer .pcd-tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:#ffeef5;border-radius:999px;padding:5px}
+#pcDrawer .pcd-tabs button{font:inherit;font-weight:700;border:0;background:transparent;color:#6a3a53;border-radius:999px;padding:10px;cursor:pointer}
+#pcDrawer .pcd-tabs button.on{background:linear-gradient(135deg,#f28db7,#e0679b);color:#fff;box-shadow:0 4px 10px rgba(224,103,155,.3)}
+#pcDrawer form{display:grid;gap:14px;margin:0}
+#pcDrawer .pcd-field{display:grid;gap:6px}
+#pcDrawer .pcd-field>span{font-weight:700;font-size:.85rem}
+#pcDrawer .pcd-in{font:inherit;width:100%;padding:12px 14px;border:2px solid #fcd6e5;border-radius:14px;background:#fff;color:#6a3a53}
+#pcDrawer .pcd-in:focus{outline:none;border-color:#e0679b;box-shadow:0 0 0 4px rgba(224,103,155,.15)}
+#pcDrawer .pcd-pw{position:relative;display:block}
+#pcDrawer .pcd-pw .pcd-in{padding-right:64px}
+#pcDrawer .pcd-eye{position:absolute;right:8px;top:50%;transform:translateY(-50%);font:inherit;font-weight:700;font-size:.8rem;border:0;background:none;color:#e0679b;cursor:pointer;padding:6px 8px}
+#pcDrawer .pcd-err{margin:0;min-height:1.3em;color:#d6334f;font-size:.9rem}
+#pcDrawer .pcd-btn{font:inherit;font-weight:700;width:100%;border:2px solid #e0679b;background:linear-gradient(135deg,#f28db7,#e0679b);color:#fff;border-radius:999px;padding:12px 20px;cursor:pointer;transition:transform .15s}
+#pcDrawer .pcd-btn:hover{transform:translateY(-2px)}
+#pcDrawer .pcd-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+#pcDrawer .pcd-btn.ghost{background:transparent;color:#e0679b}
+#pcDrawer .pcd-or{display:flex;align-items:center;gap:12px;opacity:.6;font-size:.85rem}
+#pcDrawer .pcd-or::before,#pcDrawer .pcd-or::after{content:"";flex:1;height:1px;background:#f5aac8}
+#pcDrawer .pcd-note{margin:0;text-align:center;opacity:.65;font-size:.85rem}
+#pcDrawer button:focus-visible{outline:3px solid #e0679b;outline-offset:2px}
+.pcx-quote #pcxBioText{flex:1;overflow-wrap:anywhere;line-height:1.4}
+.pcx-bioedit{margin-left:auto;flex:none;width:36px;height:36px;border-radius:50%;border:0;background:#ffe3ee;color:#e0679b;display:grid;place-items:center;cursor:pointer}
+.pcx-bioedit svg{width:16px;height:16px}
+.pcx-bioedit:hover{background:#ffd0e2}
+@media(prefers-reduced-motion:reduce){#pcDrawer .pcd-panel,#pcDrawer .pcd-back{transition:none}}
+`;
+  const st = document.createElement('style'); st.textContent = css + css2; document.head.appendChild(st);
 
   /* ---------- pages ---------- */
   ['acctModal', 'pcDrawer'].forEach(id => { const o = document.getElementById(id); if (o) o.remove(); });
   const HEARTS = '<span class="sp" style="left:8%;top:18%;font-size:26px">\u2726</span><span class="sp" style="left:86%;top:12%;font-size:22px;animation-delay:-1s">\u2726</span><span class="sp" style="left:18%;top:62%;font-size:20px;animation-delay:-2s">\u2726</span><span class="sp" style="left:90%;top:50%;font-size:24px;animation-delay:-.5s">\u2726</span><span class="sp" style="left:72%;top:30%;font-size:28px;animation-delay:-1.6s">\u2661</span><span class="sp" style="left:26%;top:34%;font-size:30px;animation-delay:-2.4s">\u2665</span><span class="sp" style="left:80%;top:72%;font-size:24px;animation-delay:-.8s">\u2661</span>';
-  const welcome = document.createElement('section');
-  welcome.className = 'screen pcx'; welcome.id = 'welcome';
-  welcome.innerHTML = `
-  <div class="pcx-deco" aria-hidden="true">${piece('k', 'pz', '').replace('class="pz"', 'class="pz" style="left:-40px;bottom:40px;width:260px"')}${piece('r', 'pz', '').replace('class="pz"', 'class="pz" style="right:-30px;bottom:90px;width:200px"')}${HEARTS}</div>
-  <header class="pcx-nav">
-    <button class="pcx-brand" type="button" data-home>${LOGO}<span>Pink Checkmate <span style="font-style:normal">\u2661</span></span></button>
-    <div class="pcx-navr"><button class="pcx-link" type="button" data-view="login">Log In</button><button class="pcx-pill" type="button" data-view="signup">Create an Account</button></div>
-  </header>
-  <main class="pcx-welcome">
-    <div class="pcx-art">${KNIGHT}</div>
-    <h1>Welcome to<br>Pink Checkmate <span style="font-style:normal">\u2661</span></h1>
-    <p class="pcx-tag">Play. Learn. Improve.</p>
-    <div class="pcx-div">\u2661</div>
-    <div class="pcx-stack" id="pcxChoose">
-      <button class="pcx-btn primary" type="button" data-view="login">Log In \u2192</button>
-      <button class="pcx-btn" type="button" data-view="signup">+ Create an Account</button>
-      <div class="pcx-or"><span>or</span></div>
-      <button class="pcx-btn" type="button" id="pcxGuest">Continue as Guest</button>
-      <button class="pcx-chip" type="button" id="pcxNoacct">No account? No problem! \u2661</button>
-    </div>
-    <form class="pcx-stack pcx-form" id="pcxForm" hidden novalidate>
-      <h2 id="pcxFormTitle">Log in</h2>
-      <label class="pcx-field"><span>Username</span><input id="pcxUser" class="pcx-in" autocomplete="username" maxlength="20" placeholder="e.g. pinkqueen"></label>
-      <label class="pcx-field"><span>Password</span><span class="pcx-pw"><input id="pcxPass" type="password" class="pcx-in" autocomplete="current-password" placeholder="At least 6 characters"><button type="button" class="pcx-eye" id="pcxEye">Show</button></span></label>
-      <label class="pcx-field" id="pcxConfWrap" hidden><span>Confirm password</span><input id="pcxConf" type="password" class="pcx-in" autocomplete="new-password" placeholder="Type it again"></label>
-      <p class="pcx-err" id="pcxErr" role="alert"></p>
-      <button class="pcx-btn primary" id="pcxSubmit" type="submit">Log In</button>
-      <button class="pcx-link" type="button" id="pcxBack">\u2190 Back</button>
-      <p class="pcx-note">Your account is saved on this device for now.</p>
+  const root = document.createElement('div'); root.id = 'pcDrawer';
+  root.innerHTML = `
+<div class="pcd-back" data-close></div>
+<aside class="pcd-panel" role="dialog" aria-modal="true" aria-label="Log in or sign up">
+  <button class="pcd-close" data-close aria-label="Close" type="button">\u00d7</button>
+  <div class="pcd-hero">
+    <svg class="pcd-logo" viewBox="0 0 100 100" aria-hidden="true"><g fill="#f06fa0" stroke="#b83c73" stroke-width="5" stroke-linejoin="round"><circle cx="50" cy="29" r="14"/><path d="M41 44h18l-3 9q11 9 13 27H31q2-18 13-27z"/><path d="M22 88h56v-6q0-5-5-5H27q-5 0-5 5z"/></g></svg>
+    <h2 id="pcdTitle">Welcome back</h2>
+    <p id="pcdSub">Log in to see your profile and stats.</p>
+  </div>
+  <div class="pcd-body">
+    <div class="pcd-tabs"><button type="button" data-tab="login" class="on">Log in</button><button type="button" data-tab="signup">Sign up</button></div>
+    <form id="pcdForm" novalidate>
+      <label class="pcd-field"><span>Username</span><input id="pcdUser" class="pcd-in" autocomplete="username" maxlength="20" placeholder="e.g. pinkqueen"></label>
+      <label class="pcd-field"><span>Password</span><span class="pcd-pw"><input id="pcdPass" type="password" class="pcd-in" autocomplete="current-password" placeholder="At least 6 characters"><button type="button" class="pcd-eye" id="pcdEye">Show</button></span></label>
+      <label class="pcd-field" id="pcdConfWrap" hidden><span>Confirm password</span><input id="pcdConf" type="password" class="pcd-in" autocomplete="new-password" placeholder="Type it again"></label>
+      <p class="pcd-err" id="pcdErr" role="alert"></p>
+      <button class="pcd-btn" id="pcdSubmit" type="submit">Log in</button>
     </form>
-  </main>`;
+    <div class="pcd-or"><span>or</span></div>
+    <button class="pcd-btn ghost" type="button" data-close>Keep playing as guest</button>
+    <p class="pcd-note">Your account is saved on this device for now.</p>
+  </div>
+</aside>`;
+  document.body.appendChild(root);
 
   const profile = document.createElement('section');
   profile.className = 'screen pcx'; profile.id = 'profilePage';
@@ -235,9 +271,10 @@
         <div class="pcx-card pcx-edit" id="pcxEdit" hidden>
           <h3>Edit profile</h3>
           <label class="pcx-field"><span>Display name</span><input id="pcxDisp" class="pcx-in" maxlength="20"></label>
+          <label class="pcx-field"><span>Bio <small id="pcxBioCount" style="opacity:.6"></small></span><textarea id="pcxBio" class="pcx-in" rows="3" maxlength="120" placeholder="Write something about you..."></textarea></label>
           <p class="pcx-err" id="pcxPErr" role="alert"></p>
           <div class="pcx-row">
-            <button class="pcx-btn primary small" type="button" id="pcxSave">Save name</button>
+            <button class="pcx-btn primary small" type="button" id="pcxSave">Save</button>
             <label class="pcx-btn small" for="pcxPhotoIn" style="cursor:pointer">Change photo</label>
             <label class="pcx-btn small" for="pcxBannerIn" style="cursor:pointer">Change banner</label>
             <button class="pcx-btn small" type="button" id="pcxRmPhoto">Remove photo</button>
@@ -256,7 +293,7 @@
             <div>${I.pct}<small>Win Rate</small><b id="pcxR">0%</b></div>
           </div>
         </div>
-        <div class="pcx-card pcx-quote"><span class="hv">\u2665</span><span>\u201cCheckmate is just the beginning \u2661\u201d</span><span class="paw">\u273f</span></div>
+        <div class="pcx-card pcx-quote"><span class="hv">\u2665</span><span id="pcxBioText"></span><button class="pcx-bioedit" type="button" id="pcxBioBtn" title="Edit bio" aria-label="Edit bio">${I.pen}</button></div>
       </div>
       <div class="pcx-view" id="pv-games" hidden>
         <div class="pcx-card"><div class="pcx-acth"><h3>${I.games}My Games</h3><span id="pcxCount" style="opacity:.7"></span></div><div class="pcx-list" id="pcxList"></div></div>
@@ -276,7 +313,7 @@
   </div>
   <input type="file" id="pcxPhotoIn" accept="image/*" hidden>
   <input type="file" id="pcxBannerIn" accept="image/*" hidden>`;
-  document.body.append(welcome, profile);
+  document.body.append(profile);
   const $ = id => document.getElementById(id);
 
   /* make sure the nav has a place for the Log in / Sign up buttons */
@@ -285,19 +322,18 @@
   /* ---------- navigation ---------- */
   function goto(id) { document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === id)); window.scrollTo(0, 0); }
   function playNow() { const b = document.querySelector('#home [data-go="game"]') || document.querySelector('[data-go="game"]'); if (b) b.click(); }
-  function setView(v) {
-    view = v;
-    $('pcxChoose').hidden = v !== 'choose'; $('pcxForm').hidden = v === 'choose';
-    if (v !== 'choose') {
-      $('pcxFormTitle').textContent = v === 'signup' ? 'Create your account' : 'Log in';
-      $('pcxSubmit').textContent = v === 'signup' ? 'Create Account' : 'Log In';
-      $('pcxConfWrap').hidden = v !== 'signup';
-      $('pcxPass').autocomplete = v === 'signup' ? 'new-password' : 'current-password';
-      $('pcxErr').textContent = '';
-      setTimeout(() => $('pcxUser').focus(), 50);
-    }
+  function setTab(t) {
+    tab = t;
+    root.querySelectorAll('.pcd-tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === t));
+    $('pcdTitle').textContent = t === 'signup' ? 'Join Pink Checkmate' : 'Welcome back';
+    $('pcdSub').textContent = t === 'signup' ? 'Make an account to save your stats and customize your profile.' : 'Log in to see your profile and stats.';
+    $('pcdSubmit').textContent = t === 'signup' ? 'Create account' : 'Log in';
+    $('pcdConfWrap').hidden = t !== 'signup';
+    $('pcdPass').autocomplete = t === 'signup' ? 'new-password' : 'current-password';
+    $('pcdErr').textContent = '';
   }
-  function openAuth(v) { setView(v); goto('welcome'); }
+  function openAuth(t) { setTab(t); root.classList.add('open'); setTimeout(() => $('pcdUser').focus(), 320); }
+  function closeDrawer() { root.classList.remove('open'); }
   function setPV(v) {
     if (v === 'logout') { setSess(''); drawAcct(); goto('home'); return; }
     if (v === 'settings') { const s = document.querySelector('[data-settings]'); if (s) s.click(); return; }
@@ -340,7 +376,9 @@
     $('pcxSince').textContent = new Date(u.created || Date.now()).toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
     const g = u.games || 0, w = u.wins || 0;
     $('pcxG').textContent = g; $('pcxW').textContent = w; $('pcxR').textContent = (g ? Math.round(w / g * 100) : 0) + '%';
+    $('pcxBioText').textContent = '\u201c' + (u.bio || 'Checkmate is just the beginning \u2661') + '\u201d';
     if (document.activeElement !== $('pcxDisp')) $('pcxDisp').value = u.name;
+    if (document.activeElement !== $('pcxBio')) { $('pcxBio').value = u.bio || ''; $('pcxBioCount').textContent = ($('pcxBio').value.length) + '/120'; }
   }
   function drawGames() {
     const u = me(), list = $('pcxList'); list.textContent = '';
@@ -367,56 +405,59 @@
     const a = e.target.closest('[data-acct]');
     if (a) { if (a.dataset.acct === 'profile') showProfile(); else openAuth(a.dataset.acct); }
   });
-  [welcome, profile].forEach(p => p.addEventListener('click', e => {
+  profile.addEventListener('click', e => {
     if (e.target.closest('[data-home]')) goto('home');
     else if (e.target.closest('[data-play]')) playNow();
-    const v = e.target.closest('[data-view]'); if (v) setView(v.dataset.view);
     const pv = e.target.closest('[data-pv]'); if (pv) setPV(pv.dataset.pv);
-  }));
-  $('pcxBack').onclick = () => setView('choose');
-  $('pcxGuest').onclick = playNow; $('pcxNoacct').onclick = playNow;
-  $('pcxEye').onclick = () => {
-    const show = $('pcxPass').type === 'password';
-    $('pcxPass').type = show ? 'text' : 'password'; $('pcxConf').type = show ? 'text' : 'password';
-    $('pcxEye').textContent = show ? 'Hide' : 'Show';
-  };
+  });
   $('pcxEditBtn').onclick = () => { $('pcxEdit').hidden = !$('pcxEdit').hidden; $('pcxPErr').textContent = ''; };
+  $('pcxBioBtn').onclick = () => { $('pcxEdit').hidden = false; $('pcxEdit').scrollIntoView({ behavior: 'smooth', block: 'center' }); setTimeout(() => $('pcxBio').focus(), 250); };
+  $('pcxBio').addEventListener('input', () => { $('pcxBioCount').textContent = $('pcxBio').value.length + '/120'; });
 
-  $('pcxForm').addEventListener('submit', async e => {
+  /* log in / sign up drawer */
+  root.addEventListener('click', e => { if (e.target.closest('[data-close]')) closeDrawer(); });
+  root.querySelectorAll('.pcd-tabs button').forEach(b => b.addEventListener('click', () => setTab(b.dataset.tab)));
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && root.classList.contains('open')) closeDrawer(); });
+  $('pcdEye').onclick = () => {
+    const show = $('pcdPass').type === 'password';
+    $('pcdPass').type = show ? 'text' : 'password'; $('pcdConf').type = show ? 'text' : 'password';
+    $('pcdEye').textContent = show ? 'Hide' : 'Show';
+  };
+  $('pcdForm').addEventListener('submit', async e => {
     e.preventDefault();
-    const err = $('pcxErr'), btn = $('pcxSubmit');
-    const name = $('pcxUser').value.trim(), pass = $('pcxPass').value, key = name.toLowerCase();
+    const err = $('pcdErr'), btn = $('pcdSubmit');
+    const name = $('pcdUser').value.trim(), pass = $('pcdPass').value, key = name.toLowerCase();
     err.textContent = '';
     if (!/^[\p{L}\p{N}_ .-]{2,20}$/u.test(name)) { err.textContent = 'Username: 2 to 20 letters or numbers.'; return; }
     if (!pass) { err.textContent = 'Please type your password.'; return; }
-    if (view === 'signup') {
+    if (tab === 'signup') {
       if (pass.length < 6) { err.textContent = 'Use at least 6 characters for the password.'; return; }
-      if (pass !== $('pcxConf').value) { err.textContent = 'The two passwords do not match.'; return; }
+      if (pass !== $('pcdConf').value) { err.textContent = 'The two passwords do not match.'; return; }
     }
     btn.disabled = true;
     try {
       const users = load();
-      if (view === 'signup') {
+      if (tab === 'signup') {
         if (users[key]) err.textContent = 'That username is taken. Try another one.';
         else {
           const salt = rand();
-          users[key] = { name, salt, hash: await hash(salt, pass), photo: '', banner: '', games: 0, wins: 0, draws: 0, losses: 0, history: [], created: Date.now() };
+          users[key] = { name, salt, hash: await hash(salt, pass), photo: '', banner: '', bio: '', games: 0, wins: 0, draws: 0, losses: 0, history: [], created: Date.now() };
           if (!save(users)) err.textContent = 'Could not save on this device. Is private browsing on?';
-          else { setSess(key); $('pcxForm').reset(); drawAcct(); showProfile(); }
+          else { setSess(key); $('pcdForm').reset(); closeDrawer(); drawAcct(); showProfile(); }
         }
       } else {
         const u = users[key];
         if (!u || u.hash !== await hash(u.salt, pass)) err.textContent = 'Wrong username or password.';
-        else { setSess(key); $('pcxForm').reset(); drawAcct(); showProfile(); }
+        else { setSess(key); $('pcdForm').reset(); closeDrawer(); drawAcct(); showProfile(); }
       }
     } catch (x) { err.textContent = 'Something went wrong. Please try again.'; }
     btn.disabled = false;
   });
 
   $('pcxSave').onclick = () => {
-    const v = $('pcxDisp').value.trim(), err = $('pcxPErr'); err.className = 'pcx-err';
+    const v = $('pcxDisp').value.trim(), bio = $('pcxBio').value.trim().replace(/\s+/g, ' ').slice(0, 120), err = $('pcxPErr'); err.className = 'pcx-err';
     if (!/^[\p{L}\p{N}_ .-]{2,20}$/u.test(v)) { err.textContent = 'Name: 2 to 20 letters or numbers.'; return; }
-    if (update(u => { u.name = v; })) { drawAcct(); drawProfile(); err.className = 'pcx-err ok'; err.textContent = 'Saved!'; }
+    if (update(u => { u.name = v; u.bio = bio; })) { drawAcct(); drawProfile(); err.className = 'pcx-err ok'; err.textContent = 'Saved!'; }
     else err.textContent = 'Could not save on this device.';
   };
   $('pcxRmPhoto').onclick = () => { update(u => { u.photo = ''; }); drawAcct(); drawProfile(); };
