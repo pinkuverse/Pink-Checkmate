@@ -76,6 +76,7 @@
   function show(id) {
     document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === id));
     window.scrollTo(0, 0);
+    try { history.replaceState(null, '', '#' + id); } catch (e) {}
   }
   document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => { b.dataset.go === 'game' ? enterGame() : show(b.dataset.go); }));
 
@@ -194,8 +195,36 @@
     { const lbl = opp === 'bot' ? 'Undo' : 'Request takeback'; $('undoBtn').title = lbl; $('undoBtn').setAttribute('aria-label', lbl); }
     document.querySelector('.board-col').classList.toggle('flip', flip);
     stopConfetti(); $('overModal').classList.remove('open'); $('promoModal').classList.remove('open'); $('tbModal').hidden = true; $('rsCard').hidden = true;
-    setNames(); buildSetup(); runClock(); render(); maybeBot();
+    setNames(); buildSetup(); runClock(); render(); maybeBot(); saveGame();
   }
+
+  /* ----- keep the game when the page is refreshed ----- */
+  function saveGame() {
+    try {
+      if (!started || over) { localStorage.removeItem('pcGame'); return; }
+      localStorage.setItem('pcGame', JSON.stringify({ m: mode.id, o: opp, b: bot.id, s: sidePick, h: humanColor, f: flip, mv: game.history(), t: times }));
+    } catch (e) {}
+  }
+  function restoreGame() {
+    let d = null;
+    try { d = JSON.parse(localStorage.getItem('pcGame') || 'null'); } catch (e) {}
+    if (!d || !Array.isArray(d.mv)) return false;
+    const md = MODES.find(x => x.id === d.m), bt = BOTS.find(x => x.id === d.b);
+    if (!md || !bt) return false;
+    game.reset();
+    for (const san of d.mv) { if (!game.move(san)) { game.reset(); return false; } }
+    mode = md; bot = bt; opp = d.o === 'bot' ? 'bot' : 'human'; sidePick = d.s || 'w'; humanColor = d.h === 'b' ? 'b' : 'w'; flip = !!d.f;
+    times = { w: +(d.t && d.t.w) || 0, b: +(d.t && d.t.b) || 0 };
+    started = true; over = false; selected = null; legal = []; premove = null; viewPly = null; manualFlip = false; botToken++; thinking = false;
+    const hv = game.history({ verbose: true }); lastMove = hv.length ? hv[hv.length - 1] : null;
+    $('modeLabel').textContent = mode.name + (mode.time ? ' \u00b7 ' + mode.label : '') + (opp === 'bot' ? ' \u00b7 vs ' + bot.name : '');
+    { const lbl = opp === 'bot' ? 'Undo' : 'Request takeback'; $('undoBtn').title = lbl; $('undoBtn').setAttribute('aria-label', lbl); }
+    document.querySelector('.board-col').classList.toggle('flip', flip);
+    $('overModal').classList.remove('open'); $('tbModal').hidden = true; $('rsCard').hidden = true;
+    setNames(); buildSetup(); runClock(); render(); maybeBot();
+    return true;
+  }
+  window.addEventListener('pagehide', saveGame);
 
   /* ----- clocks ----- */
   function runClock() {
@@ -323,7 +352,7 @@
     if (mode.time && game.history().length > 1) times[mover] += mode.inc * 1000;
     lastMove = { from: m.from, to: m.to }; selected = null; legal = [];
     lastTs = Date.now();
-    render();
+    render(); saveGame();
     if (game.in_checkmate()) finish('Checkmate', wins(mover), mover);
     else if (game.in_stalemate()) finish('Stalemate', 'No legal moves. It is a draw.');
     else if (game.in_draw()) finish('Draw', 'The game is a draw.');
@@ -354,7 +383,7 @@
     if (win) $('overHead').textContent = opp === 'bot' ? 'You win!' : (winner === 'w' ? 'White' : 'Black') + ' wins!';
     $('overModal').classList.add('open');
     if (win) celebrate(); else stopConfetti();
-    renderClocks(); info();
+    renderClocks(); info(); saveGame();
   }
 
   function info() {
@@ -431,7 +460,7 @@
     selected = null; legal = []; premove = null; viewPly = null;
     const hv = game.history({ verbose: true }); lastMove = hv.length ? hv[hv.length - 1] : null;
     lastTs = Date.now();
-    render(); maybeBot();
+    render(); saveGame(); maybeBot();
   }
   $('undoBtn').onclick = () => {
     if (over || thinking || !game.history().length) return;
@@ -557,4 +586,12 @@
   $('demoModal').addEventListener('click', e => { if (e.target.id === 'demoModal') closeDemo(); });
 
   loadSettings(); applyTheme(); refreshArt();
+
+  /* stay where you were when the page is refreshed */
+  (function initScreen() {
+    const restored = restoreGame();
+    const h = (location.hash || '').slice(1);
+    if (h === 'game') { if (restored) show('game'); else enterGame(); }
+    else if (h === 'profilePage' && window.PinkAccount && window.PinkAccount.restoreProfile) window.PinkAccount.restoreProfile();
+  })();
 })();
