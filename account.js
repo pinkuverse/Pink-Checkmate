@@ -214,6 +214,8 @@
 .pcx-bioedit svg{width:16px;height:16px}
 .pcx-bioedit:hover{background:#ffd0e2}
 .pcx-hint{margin:0;color:#e0679b;font-weight:700;font-size:.9rem}
+.pcx-pos{display:grid;gap:10px}
+.pcx-pos input[type=range]{width:100%;accent-color:#e0679b}
 .pcx-hero .pcx-editfab{position:absolute;top:14px;right:14px;z-index:3;width:42px;height:42px;border-radius:50%;border:0;background:rgba(255,255,255,.92);color:#e0679b;display:grid;place-items:center;cursor:pointer;box-shadow:0 4px 12px rgba(224,103,155,.3)}
 .pcx-hero .pcx-editfab:hover{background:#fff;transform:scale(1.06)}
 .pcx-editfab svg{width:18px;height:18px}
@@ -285,6 +287,13 @@
           <label class="pcx-field"><span>Display name</span><input id="pcxDisp" class="pcx-in" maxlength="20"></label>
           <label class="pcx-field"><span>Bio <small id="pcxBioCount" style="opacity:.6"></small></span><textarea id="pcxBio" class="pcx-in" rows="3" maxlength="120" placeholder="Write something about you..."></textarea></label>
           <p class="pcx-hint" id="pcxRepoHint" hidden>Drag your photo or banner to move it, then press Done adjusting.</p>
+          <div class="pcx-pos" id="pcxPosBox" hidden>
+            <label class="pcx-field"><span>Banner position (top \u2194 bottom)</span><input type="range" id="pcxBanY" min="0" max="100" value="50"></label>
+            <label class="pcx-field"><span>Banner position (left \u2194 right)</span><input type="range" id="pcxBanX" min="0" max="100" value="50"></label>
+            <label class="pcx-field"><span>Photo position (top \u2194 bottom)</span><input type="range" id="pcxPhY" min="0" max="100" value="50"></label>
+            <label class="pcx-field"><span>Photo position (left \u2194 right)</span><input type="range" id="pcxPhX" min="0" max="100" value="50"></label>
+          </div>
+          <p class="pcx-hint" id="pcxPosNote" hidden>This banner has no extra room to move. Upload a taller picture to adjust it up or down.</p>
           <p class="pcx-err" id="pcxPErr" role="alert"></p>
           <div class="pcx-row">
             <button class="pcx-btn primary small" type="button" id="pcxSave">Save</button>
@@ -358,7 +367,7 @@
     profile.querySelectorAll('.pcx-sb').forEach(b => b.classList.toggle('on', b.dataset.pv === v));
     if (v === 'games') drawGames();
   }
-  function showProfile(v) { if (!me()) { openAuth('login'); return; } drawProfile(); setPV(v || 'profile'); goto('profilePage'); }
+  function showProfile(v) { if (!me()) { openAuth('login'); return; } drawProfile(); setPV(v || 'profile'); goto('profilePage'); drawPos(); }
 
   /* ---------- drawing ---------- */
   const initial = n => ((n || '?').trim().charAt(0) || '?').toUpperCase();
@@ -388,7 +397,7 @@
     const pp = u.photoPos || { x: 50, y: 50 }, bp = u.bannerPos || { x: 50, y: 50 };
     av.style.backgroundPosition = pp.x + '% ' + pp.y + '%'; av.classList.toggle('hasimg', !!u.photo);
     $('pcxNavAv').style.backgroundPosition = pp.x + '% ' + pp.y + '%';
-    [u.photo, u.banner].forEach(src => { if (src && !dims[src]) { const im = new Image(); im.onload = () => { dims[src] = { w: im.naturalWidth, h: im.naturalHeight }; }; im.src = src; } });
+    [u.photo, u.banner].forEach(src => { if (src && !dims[src]) { const im = new Image(); im.onload = () => { dims[src] = { w: im.naturalWidth, h: im.naturalHeight }; drawPos(); }; im.src = src; } });
     $('pcxNavAv').style.backgroundImage = u.photo ? 'url("' + u.photo + '")' : ''; $('pcxNavAv').textContent = u.photo ? '' : initial(u.name);
     $('pcxNavName').textContent = u.name;
     const hero = $('pcxHero');
@@ -402,6 +411,7 @@
     $('pcxBioText').textContent = '\u201c' + (u.bio || 'Checkmate is just the beginning \u2661') + '\u201d';
     if (document.activeElement !== $('pcxDisp')) $('pcxDisp').value = u.name;
     if (document.activeElement !== $('pcxBio')) { $('pcxBio').value = u.bio || ''; $('pcxBioCount').textContent = ($('pcxBio').value.length) + '/120'; }
+    drawPos();
   }
   function drawGames() {
     const u = me(), list = $('pcxList'); list.textContent = '';
@@ -433,7 +443,7 @@
     else if (e.target.closest('[data-play]')) playNow();
     const pv = e.target.closest('[data-pv]'); if (pv) setPV(pv.dataset.pv);
   });
-  $('pcxEditBtn').onclick = () => { $('pcxEdit').hidden = !$('pcxEdit').hidden; $('pcxPErr').textContent = ''; if ($('pcxEdit').hidden) setRepo(false); };
+  $('pcxEditBtn').onclick = () => { $('pcxEdit').hidden = !$('pcxEdit').hidden; $('pcxPErr').textContent = ''; if ($('pcxEdit').hidden) setRepo(false); else drawPos(); };
   function setRepo(on) {
     repo = on; profile.classList.toggle('repo', on);
     $('pcxRepo').textContent = on ? 'Done adjusting' : 'Adjust position'; $('pcxRepoHint').hidden = !on;
@@ -464,6 +474,36 @@
   }
   makeDraggable($('pcxAv'), 'photo');
   makeDraggable($('pcxHero'), 'banner', '.pcx-avwrap,button,label,input,textarea');
+
+  /* sliders to move the banner / photo up, down, left or right (only shown when there is room to move) */
+  const SL = { pcxBanX: ['banner', 'x', 'pcxHero'], pcxBanY: ['banner', 'y', 'pcxHero'], pcxPhX: ['photo', 'x', 'pcxAv'], pcxPhY: ['photo', 'y', 'pcxAv'] };
+  function drawPos() {
+    const u = me(); if (!u) return;
+    let any = false;
+    Object.keys(SL).forEach(id => {
+      const [field, axis, target] = SL[id], src = u[field], d = src && dims[src], el = $(target);
+      let show = false;
+      if (d && el.clientWidth) { const sc = Math.max(el.clientWidth / d.w, el.clientHeight / d.h); show = (axis === 'x' ? d.w * sc - el.clientWidth : d.h * sc - el.clientHeight) > 1; }
+      $(id).closest('label').hidden = !show;
+      if (show) { any = true; $(id).value = (u[field + 'Pos'] || { x: 50, y: 50 })[axis]; }
+    });
+    $('pcxPosBox').hidden = !any;
+    $('pcxPosNote').hidden = !(u.banner && dims[u.banner] && $('pcxHero').clientWidth && $('pcxBanY').closest('label').hidden);
+  }
+  Object.keys(SL).forEach(id => {
+    const [field, axis, target] = SL[id];
+    const cur = u => Object.assign({ x: 50, y: 50 }, u[field + 'Pos']);
+    $(id).addEventListener('input', e => {
+      const u = me(); if (!u) return;
+      const p = cur(u); p[axis] = +e.target.value;
+      $(target).style.backgroundPosition = p.x + '% ' + p.y + '%';
+      if (field === 'photo') $('pcxNavAv').style.backgroundPosition = p.x + '% ' + p.y + '%';
+    });
+    $(id).addEventListener('change', e => {
+      update(u => { const p = cur(u); p[axis] = +e.target.value; u[field + 'Pos'] = p; });
+      drawAcct();
+    });
+  });
   $('pcxBioBtn').onclick = () => { $('pcxEdit').hidden = false; $('pcxEdit').scrollIntoView({ behavior: 'smooth', block: 'center' }); setTimeout(() => $('pcxBio').focus(), 250); };
   $('pcxBio').addEventListener('input', () => { $('pcxBioCount').textContent = $('pcxBio').value.length + '/120'; });
 
