@@ -119,22 +119,18 @@
 .pcx-main{display:grid;gap:16px;min-width:0;align-content:start}
 .pcx-view{display:grid;gap:16px}
 .pcx-card{background:rgba(255,255,255,.72);backdrop-filter:blur(6px);border:1.5px solid rgba(245,170,200,.45);border-radius:24px;padding:18px 22px;box-shadow:0 10px 30px rgba(224,103,155,.13)}
-.pcx-hero{position:relative;overflow:hidden;height:200px;background:linear-gradient(135deg,#ffe3ee,#ffd0e2) center/cover}
-.pcx-card.pcx-profcard{padding:0;overflow:hidden}
-.pcx-idrow{display:flex;align-items:flex-end;gap:22px;padding:0 26px 22px;margin-top:-68px;position:relative}
-.pcx-idrow .pcx-who{flex:1;padding-bottom:4px}
-.pcx-hero.hasimg .hh{display:none}
+.pcx-hero{position:relative;overflow:hidden;display:flex;align-items:center;gap:28px;padding:26px;min-height:210px;background:linear-gradient(135deg,#ffe3ee,#ffd0e2) center/cover}
 .pcx-hero.checker::before{content:"";position:absolute;inset:0;background:repeating-conic-gradient(rgba(255,255,255,.38) 0 25%,transparent 0 50%) 0 0/72px 72px}
 .pcx-hero>*{position:relative}
 .pcx-hero .hh{position:absolute;color:#f28db7;opacity:.7}
-.pcx-avwrap{position:relative;flex:none;width:150px;height:150px}
+.pcx-avwrap{position:relative;flex:none;width:158px;height:158px}
 .pcx-av{width:100%;height:100%;border-radius:50%;border:6px solid #fff;background:#ffd0e2 center/cover;display:grid;place-items:center;overflow:hidden;box-shadow:0 10px 24px rgba(224,103,155,.3)}
 .pcx-av svg{width:90%;height:90%}
 .pcx-pen{position:absolute;right:4px;bottom:6px;width:40px;height:40px;border-radius:50%;background:#e0679b;border:3px solid #fff;color:#fff;display:grid;place-items:center;cursor:pointer}
 .pcx-pen svg{width:18px;height:18px}
 .pcx-who{min-width:0}
 .pcx-who h2{font-size:2.1rem;color:#e0679b;overflow-wrap:anywhere;line-height:1.15}
-.pcx-handle{margin:2px 0 0;font-size:1.1rem;opacity:.85}
+.pcx-handle{margin:4px 0 14px;font-size:1.1rem;opacity:.85}
 .pcx-edit{display:grid;gap:12px}
 .pcx-edit h3{color:#e0679b}
 .pcx-row{display:flex;flex-wrap:wrap;gap:10px}
@@ -171,8 +167,7 @@
   .pcx-shell{grid-template-columns:1fr;padding:14px 14px 40px}
   .pcx-side{grid-auto-flow:column;overflow-x:auto;position:static;padding:8px}
   .pcx-sb{padding:10px 14px;white-space:nowrap}
-  .pcx-hero{height:150px}
-  .pcx-idrow{flex-direction:column;align-items:center;text-align:center;margin-top:-70px;gap:12px}
+  .pcx-hero{flex-direction:column;text-align:center;padding:22px}
   .pcx-info{grid-template-columns:1fr;gap:10px}
   .pcx-info>div+div{border-left:0;padding-left:8px}
 }
@@ -219,6 +214,11 @@
 .pcx-bioedit svg{width:16px;height:16px}
 .pcx-bioedit:hover{background:#ffd0e2}
 .pcx-hint{margin:0;color:#e0679b;font-weight:700;font-size:.9rem}
+.pcx-hero .pcx-editfab{position:absolute;top:14px;right:14px;z-index:3;width:42px;height:42px;border-radius:50%;border:0;background:rgba(255,255,255,.92);color:#e0679b;display:grid;place-items:center;cursor:pointer;box-shadow:0 4px 12px rgba(224,103,155,.3)}
+.pcx-hero .pcx-editfab:hover{background:#fff;transform:scale(1.06)}
+.pcx-editfab svg{width:18px;height:18px}
+.pcx-hero .pcx-who h2{text-shadow:0 0 3px #fff,0 0 8px #fff,0 0 16px #fff}
+.pcx-hero .pcx-handle{color:#6a3a53;opacity:1;font-weight:700;text-shadow:0 0 3px #fff,0 0 8px #fff,0 0 14px #fff}
 .pcx.repo .hasimg{cursor:grab;touch-action:none}
 .pcx.repo .hasimg:active{cursor:grabbing}
 .pcx.repo .pcx-hero.hasimg{outline:3px dashed #e0679b;outline-offset:-8px}
@@ -274,15 +274,11 @@
     </nav>
     <div class="pcx-main">
       <div class="pcx-view" id="pv-profile">
-        <div class="pcx-card pcx-profcard">
-          <div class="pcx-hero checker" id="pcxHero">
-            <span class="hh" style="right:30px;top:20px;font-size:26px">\u2665</span><span class="hh" style="right:70px;top:60px;font-size:20px">\u2661</span>
-          </div>
-          <div class="pcx-idrow">
-            <div class="pcx-avwrap"><div class="pcx-av" id="pcxAv"></div><label class="pcx-pen" for="pcxPhotoIn" title="Change photo">${I.pen}</label></div>
-            <div class="pcx-who"><h2><span id="pcxName"></span> <span style="font-style:normal">\u2661</span></h2><p class="pcx-handle" id="pcxHandle"></p></div>
-            <button class="pcx-pill" type="button" id="pcxEditBtn">Edit Profile</button>
-          </div>
+        <div class="pcx-card pcx-hero checker" id="pcxHero">
+          <span class="hh" style="right:82px;top:24px;font-size:26px">\u2665</span><span class="hh" style="right:44px;top:74px;font-size:20px">\u2661</span>
+          <button class="pcx-editfab" type="button" id="pcxEditBtn" title="Edit profile" aria-label="Edit profile">${I.pen}</button>
+          <div class="pcx-avwrap"><div class="pcx-av" id="pcxAv"></div><label class="pcx-pen" for="pcxPhotoIn" title="Change photo">${I.pen}</label></div>
+          <div class="pcx-who"><h2><span id="pcxName"></span> <span style="font-style:normal">\u2661</span></h2><p class="pcx-handle" id="pcxHandle"></p></div>
         </div>
         <div class="pcx-card pcx-edit" id="pcxEdit" hidden>
           <h3>Edit profile</h3>
